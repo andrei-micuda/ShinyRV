@@ -1,26 +1,55 @@
 library(shiny)
 library(hash)
 
+outputDir <- "distribution_data"
+
+saveData <- function(data) {
+  # Create a unique file name
+  fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
+  # Write the file to the local system
+  write.csv(
+    x = data,
+    file = file.path(outputDir, fileName), 
+    row.names = FALSE, quote = TRUE
+  )
+}
+
+loadData <- function() {
+  # Read all the files into a list
+  files <- list.files(outputDir, full.names = TRUE)
+  data <- lapply(files, read.csv, stringsAsFactors = FALSE) 
+  # Concatenate all data together into one data.frame
+  data <- do.call(rbind, data)
+  data
+}
+
 data_distributions <- hash(
-  "Normal" = data.frame(
-    "desc_HTML" = "The Normal Distribution is lorem ipsum",
-    "variable" = c("&sigma;", "&mu;", "a", "b"),
-    "input_id" = c("std_dev", "mean", "a", "b"),
-    "default_value" = c( 0, 1, -5, 5)),
-  "Uniform" = data.frame(
-    "variable" = c("a", "b", "c", "test"),
-    "input_id" = c("a", "b", "c", "test"),
-    "default_value" = c(0, 1, 5, 12))
+  "Normal" = hash(
+    "desc_HTML" = "The Normal Distribution is lorem ipsum!",
+    "variables" = data.frame(
+      "name" = c("&sigma;", "&mu;", "a", "b"),
+      "input_id" = c("std_dev", "mean", "a", "b"),
+      "default_value" = c(0, 1, -5, 5)
+    )),
+  "Uniform" = hash(
+    "desc_HTML" = "The Uniform Distribution is lorem ipsum",
+    "variables" = data.frame(
+      "name" = c("a", "b"),
+      "input_id" = c("a", "b"),
+      "default_value" = c(0, 1)
+    ))
 )
+
 
 
 function(input, output) {
   distribution_plot_data <- eventReactive(input$update_plot, {
     distribution_name = paste(input$distribution)
+    
     if(distribution_name == 'Normal') {
       points <- seq(input$var_a, input$var_b, length.out = 20)
       
-      data.frame(
+      hash(
         "desc" = data_distributions[[distribution_name]]$desc_HTML,
         "plot_values" = dnorm(points, input$var_std_dev, input$var_mean),
         "points" = points)
@@ -46,19 +75,21 @@ function(input, output) {
     # Get the data set with the appropriate name
     selected_distribution <- data_distributions[[paste(input$distribution)]]
     
-    variable_inputs <- lapply(seq_along(selected_distribution[,1]), function(i){
-      numericInput(inputId = paste("var_", selected_distribution[i,]$input_id, sep = ""), label = HTML(selected_distribution[i,]$variable), value = selected_distribution[i,]$default_value)
+    variable_inputs <- apply(selected_distribution$variables, 1, function(row){
+      name <- row[1]
+      input_id <- row[2]
+      default_value <- row[3]
+      
+      numericInput(inputId = paste("var_", input_id, sep = ""), label = HTML(name), value = as.numeric(default_value))
     })
     
     # Create the checkboxes and select them all by default
   })
   
-  output$desc <- renderText(distribution_plot_data()$desc)
+  output$desc <- renderText({distribution_plot_data()$desc})
   
   output$density_mass_plot <- renderPlot({
     data <- distribution_plot_data()
     plot(data$points, data$plot_values)
   })
-
-  output$debug <- renderText(input$var_a)
 }
