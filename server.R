@@ -43,21 +43,34 @@ data_distributions <- hash(
 
 
 function(input, output) {
-  distribution_plot_data <- eventReactive(input$update_plot, {
+  distribution_plot_data <- eventReactive(c(input$update_plot, input$dens_mass_n_points), {
     distribution_name = paste(input$distribution)
     
-    if(distribution_name == 'Normal') {
-      points <- seq(input$var_a, input$var_b, length.out = 20)
+    # if the data didn't load yet (update button hasn't been clicked)
+    # fill in the data for N(0,1)
+    if(length(distribution_name) == 0){
+      distribution_name <- 'Normal'
+      points <- seq(-5, 5, length.out = 25)
       
       hash(
         "desc" = data_distributions[[distribution_name]]$desc_HTML,
-        "plot_values" = dnorm(points, input$var_std_dev, input$var_mean),
+        "plot_values" = dnorm(points, 0, 1),
         "points" = points)
     }
-    else if(distribution_name == 'Uniform') {
-      
+    else {
+      if(distribution_name == 'Normal') {
+        points <- seq(input$var_a, input$var_b, length.out = input$dens_mass_n_points)
+        
+        hash(
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "plot_values" = dnorm(points, input$var_std_dev, input$var_mean),
+          "points" = points)
+      }
+      else if(distribution_name == 'Uniform') {
+        
+      }
+      else {}
     }
-    else {}
     
   })
   
