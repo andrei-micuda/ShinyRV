@@ -55,13 +55,23 @@ loadData <- function() {
         "name" = c("a", "b"),
         "input_id" = c("a", "b"),
         "default_value" = c(0, 1)
-      ))
+      )),
+    "Geometric" = hash(
+      "desc_HTML" = "The geometric distriution kinda cool.",
+      "variables" = data.frame(
+        "name" = c("p", "a", "b"),
+        "input_id" = c("p", "a", "b"),
+        "default_value" = c(0.5, 0, 10)
+      )
+    )
   )
 }
 
 function(input, output) {
   distribution_plot_data <- eventReactive(c(input$update_plot, input$n_points), {
-    distribution_name = paste(input$distribution)
+    distribution_name = paste(input$distribution) # Concatenate vectors after converting to character.
+    
+    print(distribution_name)
     
     # if the data didn't load yet (update button hasn't been clicked)
     # fill in the data for N(0,1)
@@ -101,6 +111,32 @@ function(input, output) {
       }
       else if(distribution_name == 'Uniform') {
         
+      }
+      else if(distribution_name == 'Geometric') {
+        p <- input$var_p
+        if(p != 0) {
+          points <- seq(input$var_a, input$var_b)
+          print(points)
+          
+          var <- (1 - p)/ p ** 2
+          mean <- 1 / p
+          median <- -1 / log2(1 - p)
+          
+          hash(
+            "desc" = data_distributions[[distribution_name]]$desc_HTML,
+            "dens_mass_plot_values" = dgeom(points, prob = p),
+            "distribution_plot_values" = pgeom(points, prob = p),
+            "points" = points,
+            "statistics" = hash(
+              "Mean" = mean,
+              "Median" = median,
+              "Variance" = var,
+              "Standard deviation" = sqrt(var)
+            ))
+        }
+        else {
+          # idk yet
+        }
       }
       else {}
     }
