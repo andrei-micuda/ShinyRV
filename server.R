@@ -57,11 +57,29 @@ loadData <- function() {
         "default_value" = c(0, 1)
       )),
     "Geometric" = hash(
-      "desc_HTML" = "The geometric distriution kinda cool.",
+      "desc_HTML" = '<div class="panel panel-body">
+      <p>The geometric distribution represents the number of failures before you get a success in a series of 
+      <a href="https://www.statisticshowto.com/bernoulli-distribution/#trial">Bernoulli trials</a>. 
+      This <a href="https://www.statisticshowto.com/discrete-probability-distribution/">discrete probability distribution</a> 
+      is represented by the 
+      <a href="https://www.statisticshowto.com/probability-density-function/">probability density function</a>:</p>
+      <br />
+      <p>
+        f(x) = (1 − p)<sup><strong>x</strong></sup> *p
+      </p>
+      <footer>
+        <p>Origin of this description:
+          <a href="https://www.statisticshowto.com/geometric-distribution/"> Statistics how to</a>
+        </p>
+      </footer>
+    </div>',
       "variables" = data.frame(
         "name" = c("p", "a", "b"),
         "input_id" = c("p", "a", "b"),
-        "default_value" = c(0.5, 0, 10)
+        "default_value" = c(0.5, 0, 10),
+        "min" = c(0.1, 0, 0),
+        "max" = c(1, 99, 100),
+        "step" = c(0.05, 1, 1)
       )
     )
   )
@@ -162,7 +180,16 @@ function(input, output) {
       input_id <- row[2]
       default_value <- row[3]
       
-      numericInput(inputId = paste("var_", input_id, sep = ""), label = HTML(name), value = as.numeric(default_value))
+      min <- NA
+      max <- NA
+      step <- NA
+      if(length(row) > 3) {
+        min <- row[4]
+        max <- row[5]
+        step <- row[6]
+      }
+      
+      numericInput(inputId = paste("var_", input_id, sep = ""), label = HTML(name), value = as.numeric(default_value), min = min, max = max, step = step)
     })
     
     # Create the checkboxes and select them all by default
