@@ -84,6 +84,30 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
         "step" = c(0.05, 1, 1)
       )
     )},
+    "Exponential" = {hash(
+      "desc_HTML" = '
+      <div class="panel panel-body">
+        <p>
+          The <span class="text-success">exponential distribution</span> (also called the negative exponential distribution) is a probability distribution that describes time between events in a <span class="text-success">Poisson process</span>.
+        </p>
+        
+        <p>
+          There is a strong relationship between the Poisson distribution and the Exponential distribution. For example, let’s say a Poisson distribution models the number of births in a given time period. The time in between each birth can be modeled with an exponential distribution (Young & Young, 1998).
+        </p>
+        
+        <p>
+          It is a particular case of the <span class="text-success">gamma distribution</span>. It is the continuous analogue of the geometric distribution, and it has the key property of being <span class="text-success">memoryless</span>.
+        </p>
+      </div>',
+      "variables" = data.frame(
+        "name" = c("&lambda;", "a", "b"),
+        "input_id" = c("lambda", "a", "b"),
+        "default_value" = c(1, 0, 5),
+        "min" = c(1, 0, 0),
+        "max" = c(100, 100, 100),
+        "step" = c(0.1, 1, 1)
+      )
+    )},
     "Normal" = {hash(
       "desc_HTML" = '
     <div class="panel panel-body">
@@ -326,6 +350,23 @@ function(input, output) {
             "Standard deviation" = sqrt(lambda)
           ))
       }
+      else if(distribution_name == 'Exponential') {
+        points <- seq(input$var_a, input$var_b, length.out = input$n_points)
+        lambda <- input$var_lambda
+        
+        hash(
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dexp(points, lambda),
+          "distribution_plot_values" = pexp(points, lambda),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = 1 / lambda,
+            "Median" = log(2) / lambda,
+            "Variance" = 1 / lambda^2,
+            "Standard deviation" = sqrt(1 / lambda^2)
+          ))
+      }
     } 
   })
   
@@ -441,6 +482,15 @@ function(input, output) {
         col=plot_color
         )
     }
+    else if(data$name == 'Exponential')
+    {
+      plot(
+        data$points, data$dens_mass_plot_values,
+        type = 'l',
+        lwd = 2,
+        col=plot_color
+      )
+    }
     else
     {
       plot(
@@ -498,7 +548,7 @@ function(input, output) {
       plot(
         data$points, data$distribution_plot_values,
         pch = 19,
-        col = plot_color
+        col = plot_color,
       )
       
       segments(
@@ -507,6 +557,15 @@ function(input, output) {
         x1 = data$points + 1,
         y1 = data$distribution_plot_values,
         col = plot_color
+      )
+    }
+    else if(data$name == 'Exponential')
+    {
+      plot(
+        data$points, data$distribution_plot_values,
+        type = 'l',
+        lwd = 2,
+        col=plot_color
       )
     }
     else
