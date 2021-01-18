@@ -131,6 +131,26 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
         "input_id" = c("mean", "std_dev", "a", "b"),
         "default_value" = c(0, 1, -5, 5)
       ))},
+    "Log-normal" = {hash(
+      "desc_HTML" = '
+    <div class="panel panel-body">
+      <p>
+        A log-normal (lognormal or Galton) distribution is a probability distribution with a normally distributed logarithm. A random variable is <span class="text-success">lognormally distributed</span> if its logarithm is normally distributed. Thus, if the random variable X is log-normally distributed, then <i>Y = ln(X)</i> has a normal distribution. Equivalently, if Y has a normal distribution, then the exponential function of <i>Y</i>, <i>X = exp(Y)</i>, has a log-normal distribution. A random variable which is log-normally distributed takes only positive real values.
+      </p>
+      
+      <p>
+        The probability density function is defined by the mean &mu; and standard deviation, &sigma;:
+        <img src="https://www.statisticshowto.com/wp-content/uploads/2015/08/lognormal-distribution-pdf3.png" alt="lognormal distribution pdf3" class="alignnone size-full wp-image-19146 lazyloaded" sizes="(max-width: 423px) 100vw, 423px" srcset="https://www.statisticshowto.com/wp-content/uploads/2015/08/lognormal-distribution-pdf3.png 423w, https://www.statisticshowto.com/wp-content/uploads/2015/08/lognormal-distribution-pdf3-300x35.png 300w" data-ll-status="loaded" width="423" height="49">
+      </p>
+      
+    </div>
+    
+    ',
+      "variables" = data.frame(
+        "name" = c("&mu;", "&sigma;", "a", "b"),
+        "input_id" = c("mean", "std_dev", "a", "b"),
+        "default_value" = c(0, 1, 0, 2.5)
+      ))},
     "Uniform" = {hash(
       "desc_HTML" = '
       <div class="panel panel-body">
@@ -224,6 +244,24 @@ function(input, output) {
             "Median" = mean,
             "Variance" = std_dev,
             "Standard deviation" = sqrt(std_dev)
+          ))
+      }
+      else if(distribution_name == 'Log-normal') {
+        points <- seq(input$var_a, input$var_b, length.out = input$n_points)
+        std_dev <- input$var_std_dev
+        mean <- input$var_mean
+        
+        hash(
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dlnorm(points, mean, std_dev),
+          "distribution_plot_values" = plnorm(points, mean, std_dev),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = exp(mean + std_dev^2 / 2),
+            "Median" = exp(mean),
+            "Variance" = floor(exp(std_dev^2) - 1) * exp(2 * mean + std_dev^2),
+            "Standard deviation" = sqrt(floor(exp(std_dev^2) - 1) * exp(2 * mean + std_dev^2))
           ))
       }
       else if(distribution_name == 'Uniform') {
@@ -491,6 +529,15 @@ function(input, output) {
         col=plot_color
       )
     }
+    else if(data$name == 'Log-normal')
+    {
+      plot(
+        data$points, data$dens_mass_plot_values,
+        type = 'l',
+        lwd = 2,
+        col=plot_color
+      )
+    }
     else
     {
       plot(
@@ -560,6 +607,15 @@ function(input, output) {
       )
     }
     else if(data$name == 'Exponential')
+    {
+      plot(
+        data$points, data$distribution_plot_values,
+        type = 'l',
+        lwd = 2,
+        col=plot_color
+      )
+    }
+    else if(data$name == 'Log-normal')
     {
       plot(
         data$points, data$distribution_plot_values,
