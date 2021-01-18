@@ -51,7 +51,26 @@ loadData <- function() {
         "default_value" = c(0, 1, -5, 5)
       )),
     "Uniform" = hash(
-      "desc_HTML" = "The Uniform Distribution is lorem ipsum",
+      "desc_HTML" = '
+      <div class="panel panel-body">
+        <p>
+          A <span class="text-success">uniform</span> distribution, also called a <span class="text-success">rectangular distribution</span>, is a probability distribution that has <span class="text-success">constant probability</span>.
+        </p>
+        
+        <p>
+          This distribution is defined by two parameters, a and b:
+        </p>
+        
+        <ul>
+          <li>a is the minimum.</li>
+          <li>b is the maximum.</li>
+        </ul>
+  
+        <p>
+          The distribution is written as <code>U(a,b)</code>.
+        </p>
+      </div>
+      ',
       "variables" = data.frame(
         "name" = c("a", "b"),
         "input_id" = c("a", "b"),
@@ -121,8 +140,6 @@ function(input, output) {
   distribution_plot_data <- eventReactive(c(input$update_plot, input$n_points), {
     distribution_name = paste(input$distribution) # Concatenate vectors after converting to character.
     
-    print(distribution_name)
-    
     # if the data didn't load yet (update button hasn't been clicked)
     # fill in the data for N(0,1)
     if(length(distribution_name) == 0){
@@ -148,6 +165,7 @@ function(input, output) {
         mean <- input$var_mean
         
         hash(
+          "name" = distribution_name,
           "desc" = data_distributions[[distribution_name]]$desc_HTML,
           "dens_mass_plot_values" = dnorm(points, mean, std_dev),
           "distribution_plot_values" = pnorm(points, mean, std_dev),
@@ -160,7 +178,26 @@ function(input, output) {
           ))
       }
       else if(distribution_name == 'Uniform') {
+        a <- input$var_a
+        b <- input$var_b
+        points <- seq(a, b, length.out = input$n_points)
         
+        hash(
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dunif(points, a, b),
+          "distribution_plot_values" = punif(points, a, b),
+          "interval_points" = hash(
+            "begin" = a,
+            "end" = b
+          ),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = (a+b) / 2,
+            "Median" = (a+b) / 2,
+            "Variance" = (b - a)^2 / 12,
+            "Standard deviation" = sqrt((b - a)^2 / 12)
+          ))
       }
       else if(distribution_name == 'Geometric') {
         p <- input$var_p
@@ -173,6 +210,7 @@ function(input, output) {
           median <- -1 / log2(1 - p)
           
           hash(
+            "name" = distribution_name,
             "desc" = data_distributions[[distribution_name]]$desc_HTML,
             "dens_mass_plot_values" = dgeom(points, prob = p),
             "distribution_plot_values" = pgeom(points, prob = p),
@@ -249,7 +287,7 @@ function(input, output) {
   
   # Drop-down selection box for which data set
   output$choose_distribution <- renderUI({
-    selectInput(inputId = "distribution", "Distribution", keys(data_distributions))
+    selectInput(inputId = "distribution", "Distribution", keys(data_distributions), selected = "Normal")
   })
   
   # Inputs for the variables of the selected distribution
@@ -285,12 +323,123 @@ function(input, output) {
   
   output$density_mass_plot <- renderPlot({
     data <- distribution_plot_data()
-    plot(data$points, data$dens_mass_plot_values)
+    if(data$name == 'Uniform')
+    {
+      plot_color <- '#428bca'
+      a <- data$interval_points$begin
+      b <- data$interval_points$end
+      # we center the interval and make it take 70% of the whole x axis
+      offset_x <-3 * (b - a) / 14
+      plot(
+        data$points, data$dens_mass_plot_values,
+        xlim = c(a - offset_x, b + offset_x),
+        ylim = c(0, 10 / (8 * (b - a))),
+        type = 'l',
+        col=plot_color,
+        lwd = 2)
+      
+      abline(
+        h = 1 / (b-a),
+        col = '#555555',
+        lty = 'dashed'
+      )
+      
+      text(
+        x = a - offset_x,
+        y = 1 / (b-a),
+        expression(frac(1, b-a)),
+        pos = 3,
+        cex = 0.8,
+        col = '#555555'
+      )
+      
+      segments(
+        x0 = c(a - offset_x - 100, b),
+        y0 = 0,
+        x1 = c(a, b + offset_x + 100),
+        y1 = 0,
+        col = plot_color,
+        lwd = 2)
+      
+      segments(
+        x0 = c(a, b),
+        y0 = 0,
+        x1 = c(a, b),
+        y1 = 1 / (b-a),
+        col = plot_color,
+        lty = 'dashed'
+      )
+      
+      points(
+        x = c(a, b),
+        y = c(1 / (b-a), 1 / (b-a)),
+        col = plot_color,
+        pch = 19
+      )
+      
+      rect(
+        xleft = a,
+        ybottom = 0,
+        xright = b,
+        ytop = 1 / (b-a),
+        border = 'transparent',
+        density = 5,
+        angle = 30,
+        col = '#555555'
+      )
+    }
+    else
+    {
+      plot(data$points, data$dens_mass_plot_values)
+    }
   })
   
   output$distribution_plot <- renderPlot({
     data <- distribution_plot_data()
-    plot(data$points, data$distribution_plot_values)
+    if(data$name == 'Uniform')
+    {
+      plot_color <- '#428bca'
+      a <- data$interval_points$begin
+      b <- data$interval_points$end
+      # we center the interval and make it take 70% of the whole x axis
+      offset_x <-3 * (b - a) / 14
+      plot(
+        data$points, data$distribution_plot_values,
+        xlim = c(a - offset_x, b + offset_x),
+        type = 'l',
+        col=plot_color,
+        lwd = 2)
+      
+      segments(
+        x0 = c(a - offset_x - 100, b),
+        y0 = c(0, 1),
+        x1 = c(a, b + offset_x + 100),
+        y1 = c(0, 1),
+        col = plot_color,
+        lwd = 2)
+      
+      segments(
+        x0 = b,
+        y0 = -100,
+        x1 = b,
+        y1 = 1,
+        col = plot_color,
+        lty = 'dashed'
+      )
+      
+      text(
+        x = b,
+        y = 0,
+        "b",
+        pos = 2,
+        cex = 0.8,
+        col = plot_color
+      )
+    }
+    else
+    {
+      plot(data$points, data$distribution_plot_values)
+    }
   })
   
   output$statistics_table <- renderTable({
