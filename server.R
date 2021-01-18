@@ -139,6 +139,14 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
         <p>
           A <span class="text-success">Poisson distribution</span> is a tool that helps to predict the probability of certain events from happening when you know how often the event has occurred. It gives us the <span class="text-success">probability of a given number of events happening in a fixed interval of time</span>.
         </p>
+        <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c22cb4461e100a6db5f815de1f44b1747f160048" class="mwe-math-fallback-image-inline" aria-hidden="true" style="vertical-align: -2.005ex; margin-left: -0.387ex; width:30.958ex; height:5.843ex;">
+        <p>
+          where
+          <ul>
+            <li><i>e</i> is <span class="text-success">Euler\'s number</span> (2.71828..)</li>
+            <li><i>k</i> is the number of occurences</li>
+          </ul>
+        </p>
       </div>',
       "variables" = data.frame(
         "name" = c("&lambda;", "a", "b"),
