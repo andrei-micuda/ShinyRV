@@ -1,6 +1,7 @@
 library(shiny)
 library(hash)
 library(xtable)
+library(Rlab)
 
 outputDir <- "distribution_data"
 
@@ -81,6 +82,37 @@ loadData <- function() {
         "max" = c(1, 99, 100),
         "step" = c(0.05, 1, 1)
       )
+    ),
+    "Bernoulli" = hash(
+      "desc_HTML" = '<div class="panel panel-body">
+        <p>A <b>Bernoulli distribution</b> is a <span class="text-success">discrete probability distribution</span> for a Bernoulli trial - a random experiment that has only two outcomes (usually called a "Success" or a "Failure"). For example, the probability of getting a heads (a "success") while flipping a coin is 0.5. The probability of "failure" is 1 - P (1 minus the probability of success, which also equals 0.5 for a coin toss). It is a special case of the <span class="text-success">binomial distribution</span> for n = 1. In other words, it is a binomial distribution with a single trial (e.g. a single coin toss).
+        </p>
+      </div>
+      ',
+      "variables" = data.frame(
+        "name" = c("p","x"),
+        "input_id" = c("p","x"),
+        "default_value" = c(0.5,1),
+        "min" = c(0,0),
+        "max" = c(1,1),
+        "step" = c(0.05,1)
+      )
+    ),
+    "Binomial" = hash(
+      "desc_HTML" = '<div class="panel panel-body">
+       <p>In probability theory and statistics, the <b>binomial distribution</b> with parameters n and p is the <span class="text-success">discrete probability distribution</span> of the number of successes in a sequence of n <b>independent experiments</b>, each asking a yes-no question, and each with its own Boolean-valued outcome: <span class="text-success">success (with probability p) or failure (with probability q = 1 ??? p)</span>. The <b>binomial distribution</b> is a <b>Bernoulli distribution</b>. The binomial distribution is the basis for the popular binomial test of statistical significance.
+
+The <b>binomial distribution</b> is frequently used to model <span class="text-success">the number of successes</span> in a sample of size n drawn with replacement from a population of size N. If the sampling is carried out without replacement, the draws are not independent and so the resulting distribution is a hypergeometric distribution, not a binomial one. However, for N much larger than n, the binomial distribution remains a good approximation, and is widely used. </p>
+      </div>'
+      ,
+      "variables" = data.frame(
+        "name" = c("p","n"),
+        "input_id" = c("p","n"),
+        "default_value" = c(0.5,1),
+        "min" = c(0,1),
+        "max" = c(1,20),
+        "step" = c(0.05,1)
+      )
     )
   )
 }
@@ -156,9 +188,63 @@ function(input, output) {
           # idk yet
         }
       }
-      else {}
-    }
-    
+      else if(distribution_name == 'Bernoulli'){
+        if ( input$var_x ==0){
+          p<- 1-(input$var_p)
+        }
+        else{
+          p<- input$var_p
+        }
+          
+        points <- seq(0,1)
+        print(points)
+        
+        var <- p*(1-p)
+        mean <- p
+        if ( p < 1/2 ){
+          median <- 0
+        }
+        else if ( p > 1/2){
+          median <- 1
+        }
+        else{
+          median <- "[0,1]"
+        }
+        hash(
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dbern(points,prob = p),
+          "distribution_plot_values" = pbern(points,prob = p),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = mean,
+            "Median" = median,
+            "Variance" = var,
+            "Standard deviation" = sqrt(var)
+          ))
+          
+      }
+      else if(distribution_name == 'Binomial'){
+        p<- (input$var_p)
+        n<- (input$var_n)
+        points<- seq(0,n)
+        print(points)
+        
+        var <- n * p* (1-p)
+        mean <- n* p
+        median <- n *p
+        hash(
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dbinom( points,size=n,prob=p),
+          "distribution_plot_values" = pbinom( points,size=n,prob=p),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = mean,
+            "Median" = median,
+            "Variance" = var,
+            "Standard deviation" = sqrt(var)
+          ))
+      }
+    } 
   })
   
   # Drop-down selection box for which data set
