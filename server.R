@@ -54,7 +54,7 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
         "input_id" = c("p","n"),
         "default_value" = c(0.5,1),
         "min" = c(0,1),
-        "max" = c(1,20),
+        "max" = c(1,50),
         "step" = c(0.05,1)
       )
     )},
@@ -199,6 +199,53 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
         "min" = c(1, 0, 0),
         "max" = c(100, 100, 100),
         "step" = c(1, 1, 1)
+      )
+    )},
+    "Hyper-Geometric" = {hash(
+      "desc_HTML" = '
+      <div class="panel panel-body">
+        <p>
+          In probability theory and statistics, the <b>hypergeometric distribution</b> is a <span class="text-success">discrete probability distribution</span> that describes the probability of <b>k</b> successes (random draws for which the object drawn has a specified feature) in <b>n</b> draws, without replacement, from a finite population of size <b>N</b> that contains exactly <b>K</b> objects with that feature, wherein each draw is <span class="text-success">either a success or a failure.</span>
+        </p>
+      </div>'
+      ,
+      "variables" = data.frame(
+        "name" = c("p","n","m","k","x"),
+        "input_id" = c("p","n","m","k","x"),
+        "default_value" = c(0.5,5,5,5,5),
+        "min" = c(0,0,0,0,0),
+        "max" = c(1,30,30,60,30),
+        "step" =c (0.05,1,1,1,1)
+      )
+    )},
+    "Negative-Binomial"={hash(
+      "desc_HTML" = '
+      <div class="panel panel-body">
+      In probability theory and statistics, the <b>negative binomial distribution</b> is a <span class="text-success">discrete probability distribution</span> that models the <span class="text-success">number of successes</span> in a sequence of <b>independent and identically</b> distributed <b>Bernoulli trials</b> before a specified (non-random) number of failures (denoted mu) occurs. For example, we can define rolling a 6 on a die as a failure, and rolling any other number as a success, and ask how many successful rolls will occur before we see the third failure (mu = 3). In such a case, the probability distribution of the number of non-6s that appear will be a negative binomial distribution. We could similarly use the negative binomial distribution to model the number of days a certain machine works before it breaks down (mu = 1).
+      </div>'
+      ,
+      "variables" = data.frame(
+        "name" = c("n","mu"),
+        "input_id" = c("n","mu"),
+        "default_value" = c(10,5),
+        "min" = c(1,1),
+        "max" = c(50,50),
+        "step" = c(1,1)
+      )
+    )},
+    "Students-T"={hash(
+      "desc_HTML" = '
+      <div class="panel panel-body">
+      In probability and statistics, <b>Students t-distribution</b> (or simply the t-distribution) is any member of a <span class="text-success">family of continuous probability distributions</span> that arise when estimating the <b>mean</b> of a normally-distributed population in situations where the sample size is <b>small</b> and the population s standard deviation is unknown. It was developed by English statistician <span class="text-success">William Sealy Gosset</span> under the pseudonym <b>Student</b>.
+      </div>'
+      ,
+      "variables" = data.frame(
+        "name" = c("df","p","a","b"),
+        "input_id" = c("df","p","a","b"), 
+        "default_value" = c(5,0.05,-5,5),
+        "min" = c(1,0,-100,-100),
+        "max" = c(100,1,100,100),
+        "step" = c(1,0.05,1,1)
       )
     )}
   )
@@ -403,6 +450,88 @@ function(input, output) {
             "Median" = log(2) / lambda,
             "Variance" = 1 / lambda^2,
             "Standard deviation" = sqrt(1 / lambda^2)
+          ))
+      }
+      else if(distribution_name == 'Hyper-Geometric'){
+        p<- (input$var_p)
+        n<- (input$var_n)
+        m<- (input$var_m)
+        k<- (input$var_k)
+        x<- (input$var_x)
+        points <- seq(0,x)
+        print (points)
+        
+        var <- k*p*(1-p)*(m+n-k)/(m+n-1)
+        mean = k*p
+        hash(
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dhyper( points,m,n,k),
+          "distribution_plot_values" = phyper(points,m,n,k),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = mean,
+            "Median" = "-",
+            "Variance" = var,
+            "Standard deviation" = sqrt(var)
+          ))
+      }
+      else if(distribution_name == 'Negative-Binomial'){
+        n<-(input$var_n)
+        mu<-(input$var_mu)
+        points <- seq(0,n)
+        print(points)
+        
+        var <- (mu+mu^2)/n
+        mean <- mu
+        median <- mu
+        hash(
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dnbinom( points,size=n,mu=mu),
+          "distribution_plot_values" = pnbinom( points,size=n,mu=mu),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = mean,
+            "Median" = median,
+            "Variance" = var,
+            "Standard deviation" = sqrt(var)
+          ))
+      }
+      else if(distribution_name == 'Students-T'){
+        points <- seq(input$var_a, input$var_b, length.out = input$n_points)
+        df <- input$var_df
+        p <- input$var_p
+        if ( df <= 1)
+        {
+          mean <-0
+        }
+        else
+        {
+          mean <- 'undefined'
+        }
+        median <- 0
+        if ( df > 2)
+        {
+          variance <- df/(df-2)
+        }else if (df<=2 && df>1){
+          variance <- Inf
+        }else{
+          variance <- 'undefined'
+        }
+        
+        
+        hash(
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dt(points, df),
+          "distribution_plot_values" = pt(points, df),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = mean,
+            "Median" = median,
+            "Variance" = variance,
+            "Standard deviation" = 'undefined'
           ))
       }
     } 
