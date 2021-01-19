@@ -84,6 +84,71 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
         "step" = c(0.05, 1, 1)
       )
     )},
+    "Gamma" = {hash(
+      "desc_HTML" = '<div class="panel panel-body">
+      <p>The gamma distribution is another widely used distribution. Its importance is largely due to its relation to exponential and normal distributions.
+         The gamma function, shown by Γ(x), is an extension of the factorial function to real (and complex) numbers.
+      </p>
+      Gamma function:
+      <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/8c6d5fccab5ff7d1a34aa6cb2d7e6cc495ea6c9c" class="center-block" aria-hidden="true" style="vertical-align: -2.838ex; width:24.446ex; height:6.676ex;"/>
+      PDF:
+      <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/206171e583bb2aa2e14a65530b7cd9e5596d922e" class="center-block" aria-hidden="true" style="vertical-align: -2.838ex; width:24.446ex; height:6.676ex;" />
+     
+    </div>',
+      "variables" = data.frame(
+        "name" = c("k", "&theta;", "a", "b"),
+        "input_id" = c("k", "theta", "a", "b"),
+        "default_value" = c(9, 0.5, 0, 20),
+        "min" = c(0.00001, 0.00001, 0, 0),
+        "max" = c(Inf, Inf, Inf, Inf),
+        "step" = c(1, 0.05, 1, 1)
+      )
+    )},
+    "Beta" = {hash(
+      "desc_HTML" = '<div class="panel panel-body">
+      <p>A Beta distribution is a type of probability distribution. This distribution represents a family of probabilities and is a versatile way to represent outcomes for percentages or proportions. For example, how likely is it that Kanye West will win the next Presidential election? You might think the probability is 0.2. Your friend might think it’s 0.15. The beta distribution gives you a way to describe this.</p>
+      Gamma function:
+      <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/b32815268d9d70b0b9fbb8fd5a25be7bc640aa50" class="center-block" aria-hidden="true" style="vertical-align: -2.838ex; width:24.446ex; height:6.676ex;"/>
+      PDF:
+      <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/125fdaa41844a8703d1a8610ac00fbf3edacc8e7" class="center-block" aria-hidden="true" style="vertical-align: -2.838ex; width:24.446ex; height:6.676ex;" />
+    </div>',
+      "variables" = data.frame(
+        "name" = c("&alpha;", "&beta;"),
+        "input_id" = c("alpha", "beta"),
+        "default_value" = c(5, 1),
+        "min" = c(0.00001, 0.00001),
+        "max" = c(Inf, Inf),
+        "step" = c(0.5, 0.5)
+      )
+    )},
+    "Cauchy" = {hash(
+      "desc_HTML" = '<div class="panel panel-body">
+      <p> The Cauchy distribution, named after Augustin Cauchy, is a continuous probability distribution. It is also known, especially among physicists, as the Lorentz distribution </p>
+      <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2fa7448ba911130c1e33621f1859393d3f00af5c" class="center-block" aria-hidden="true" style="vertical-align: -2.838ex; width:24.446ex; height:6.676ex;" />
+    </div>',
+      "variables" = data.frame(
+        "name" = c("x0", "&gamma;", "a", "b"),
+        "input_id" = c("x0", "gamma", "a", "b"),
+        "default_value" = c(0, 0.5, -4, 4),
+        "min" = c(-Inf, 0.00001, -Inf, -Inf),
+        "max" = c(Inf, Inf, Inf, Inf),
+        "step" = c(0.5, 0.5, 1, 1)
+      )
+    )},
+    "Chi-square" = {hash(
+      "desc_HTML" = '<div class="panel panel-body">
+      <p> The Cauchy distribution, named after Augustin Cauchy, is a continuous probability distribution. It is also known, especially among physicists, as the Lorentz distribution </p>
+      <img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2fa7448ba911130c1e33621f1859393d3f00af5c" class="center-block" aria-hidden="true" style="vertical-align: -2.838ex; width:24.446ex; height:6.676ex;" />
+    </div>',
+      "variables" = data.frame(
+        "name" = c("n", "a", "b"),
+        "input_id" = c("n", "a", "b"),
+        "default_value" = c(4, 0, 10),
+        "min" = c(-Inf, 0, -0),
+        "max" = c(Inf, Inf, Inf),
+        "step" = c(1, 0.5, 0.5)
+      )
+    )},
     "Exponential" = {hash(
       "desc_HTML" = '
       <div class="panel panel-body">
@@ -353,19 +418,108 @@ function(input, output) {
               "Mean" = mean,
               "Median" = median,
               "Variance" = var,
-              "Standard deviation" = sqrt(var)
-            ))
+              "Standard deviation" = sqrt(var))
+            )
         }
         else {
           # idk yet
         }
       }
+      else if(distribution_name == 'Gamma') {
+        a <- input$var_a
+        b <- input$var_b
+        k <- input$var_k
+        th <- input$var_theta
+        
+        points <- seq(a, b, length.out = input$n_points)
+        
+        mean <- k * th
+        var <-  k * (th ** 2)
+        
+        hash (
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dgamma(points, shape=k, scale=th),
+          "distribution_plot_values" = pgamma(points, shape=k, scale=th),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = mean,
+            "Variance" = var,
+            "Standard deviation" = sqrt(var))
+        )
+      }
+      else if(distribution_name == 'Beta') {
+        alpha <- input$var_alpha
+        beta <- input$var_beta
+        
+        points <- seq(0, 1, length.out = input$n_points)
+        
+        mean <- alpha / (alpha + beta)
+        median <- (alpha - 1/3) / (alpha + beta - 2/3)
+        var <-  alpha * beta / ((alpha + beta) ** 2 * (alpha + beta + 1))
+        
+        hash (
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dbeta(points, shape1=alpha, shape2=beta),
+          "distribution_plot_values" = pbeta(points, shape1=alpha, shape2=beta),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = mean,
+            "Median" = median,
+            "Variance" = var,
+            "Standard deviation" = sqrt(var))
+        )
+      }
+      else if(distribution_name == 'Cauchy') {
+        x0 <- input$var_x0
+        gamma <- input$var_gamma
+        a <- input$var_a
+        b <- input$var_b
+        
+        points <- seq(a, b, length.out = input$n_points)
+        
+        median <- x0
+        
+        hash (
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dcauchy(points, location=x0, scale=gamma),
+          "distribution_plot_values" = pcauchy(points, location=x0, scale=gamma),
+          "points" = points,
+          "statistics" = hash("Median" = median)
+        )
+      }
+      else if(distribution_name == 'Chi-square') {
+        n <- floor(input$var_n)
+        a <- input$var_a
+        b <- input$var_b
+        
+        points <- seq(a, b, length.out = input$n_points)
+        
+        mean <- n
+        median <- n *(1-2/(9*n))**3
+        var <- 2*n
+        
+        hash (
+          "name" = distribution_name,
+          "desc" = data_distributions[[distribution_name]]$desc_HTML,
+          "dens_mass_plot_values" = dchisq(points, df=n),
+          "distribution_plot_values" = pchisq(points, df=n),
+          "points" = points,
+          "statistics" = hash(
+            "Mean" = mean,
+            "Median" = median,
+            "Variance" = var,
+            "Standard deviation" = sqrt(var))
+        )
+      }
       else if(distribution_name == 'Bernoulli'){
         if ( input$var_x ==0){
-          p<- 1-(input$var_p)
+          p <- 1-(input$var_p)
         }
         else{
-          p<- input$var_p
+          p <- input$var_p
         }
           
         points <- seq(0,1)
@@ -667,6 +821,15 @@ function(input, output) {
         col=plot_color
       )
     }
+    else if(data$name %in% c('Gamma', 'Beta', 'Cauchy', 'Chi-square'))
+    {
+      plot(
+        data$points, data$dens_mass_plot_values,
+        type = 'l',
+        lwd = 2,
+        col=plot_color
+      )
+    }
     else
     {
       plot(
@@ -724,7 +887,7 @@ function(input, output) {
       plot(
         data$points, data$distribution_plot_values,
         pch = 19,
-        col = plot_color,
+        col = plot_color
       )
       
       segments(
@@ -745,6 +908,15 @@ function(input, output) {
       )
     }
     else if(data$name == 'Log-normal')
+    {
+      plot(
+        data$points, data$distribution_plot_values,
+        type = 'l',
+        lwd = 2,
+        col=plot_color
+      )
+    }
+    else if(data$name %in% c('Gamma', 'Beta', 'Cauchy', 'Chi-square'))
     {
       plot(
         data$points, data$distribution_plot_values,
