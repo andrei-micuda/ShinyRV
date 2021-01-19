@@ -7150,3 +7150,32 @@ a.list-group-item-danger.active:focus {
 #statistics_table tbody tr:nth-of-type(2n+1) {
 	background-color: rgba(0,0,0,.05);
 }
+
+/* CUSTOM STYLES */
+#calculate_probability{
+    background-color: #fff;
+    color: #74898a;
+}
+
+#calculate_probability:hover{
+    background-color: #74898a;
+    color: #fff;
+}
+
+.probability_calc_input_wrapper,
+#probability_calc_output{
+    width: 40%;
+    margin: 0;
+}
+
+.d-flex{
+    display: flex;
+}
+
+.align-items-center{
+    align-items: center;
+}
+
+.justify-space-between{
+    justify-content: space-between;
+}

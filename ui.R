@@ -32,7 +32,27 @@ fluidPage(
              )
            }),
            tabPanel("Various Statistics",
-            tableOutput(outputId = "statistics_table"))
+            tableOutput(outputId = "statistics_table")),
+           tabPanel("Probability calculator",
+            div(
+              class = "d-flex align-items-center justify-space-between",
+               div(
+                 class = "d-flex align-items-center probability_calc_input_wrapper",
+                  span("P(", style="padding-right: 10px;"),
+                  div(
+                    style="display:inline-block; flex-grow: 1;",
+                    textInput(
+                      inputId = "probability_calc_input",
+                      label = "",
+                      width = "100%")),
+                  span(")", style="padding-left: 10px; padding-right: 5px;")
+                ),
+               actionButton(
+                 inputId = "calculate_probability",
+                 label = "=")
+              ,
+                verbatimTextOutput('probability_calc_output', placeholder = TRUE)
+           ))
          )
        )
      )
