@@ -2,6 +2,7 @@ library(shiny)
 library(hash)
 library(xtable)
 library(Rlab)
+library(stringr)
 
 outputDir <- "distribution_data"
 
@@ -23,6 +24,29 @@ loadData <- function() {
   # Concatenate all data together into one data.frame
   data <- do.call(rbind, data)
   data
+}
+
+parseProbabilityInput <- function(rawInput) {
+  if(str_detect(rawInput, "^X[<>]?=-?[0-9]+$|^X[<>]-?[0-9]+$")) {
+    hash(
+      "is_conditional" = FALSE,
+      "is_interval" = FALSE,
+      "operator" = str_extract(rawInput, "[<>]?=|[<>]"),
+      "value" = as.numeric(str_extract(rawInput, "-?[0-9]+"))
+    )
+  }
+  # mathing "u<=X<=v"
+  else if(str_detect(rawInput, "^-?[0-9]+<=?X<=?-?[0-9]+$")){
+    hash(
+      "is_conditional" = FALSE,
+      "is_interval" = TRUE,
+      "operators" = str_extract_all(rawInput, "<=?"),
+      "values" = as.numeric(unlist(str_extract_all(rawInput, "-?[0-9]+")))
+    )
+  }
+  else {
+    print("conditional probability - TODO")
+  }
 }
 
 {
@@ -948,5 +972,40 @@ function(input, output) {
     }
     
     table
+  })
+  
+  probability_calculator_data <- eventReactive(input$calculate_probability, {
+    distribution_data <- distribution_plot_data()
+    raw_probability_input <- input$probability_calc_input
+    
+    hash(
+      "distribution_name" = distribution_data$name,
+      "probability_data" = parseProbabilityInput(input$probability_calc_input)
+    )
+  })
+  
+  output$probability_calc_output <- renderText({
+    data <- probability_calculator_data()
+    print(data$distribution_name)
+    print(data$probability_data)
+    if(data$distribution_name == "Normal") {
+      if(!data$probability_data$is_conditional)
+      {
+        if(!data$probability_data$is_interval){
+          # input ~ "X<=u"
+          if(data$probability_data$operator %in% c("<", "<=")) {
+            pnorm(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
+          }
+          # input ~ "X>=u"
+          else{
+            1 - pnorm(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
+          }
+        }
+        # input ~ "u<=X<=v"
+        else{
+          pnorm(data$probability_data$values[2], isolate(input$var_mean), isolate(input$var_std_dev)) - pnorm(data$probability_data$values[1], isolate(input$var_mean), isolate(input$var_std_dev))
+        }
+      }
+    }
   })
 }
