@@ -55,8 +55,49 @@ fluidPage(
                  label = "=")
               ,
                 verbatimTextOutput('probability_calc_output', placeholder = TRUE)
-           ))
-         )
+              
+           )
+           ),
+           
+           tabPanel("Applying Function",
+              div(style="display:inline-block; flex-grow: 1;",
+              div(
+                class = "d-flex align-items-center justify-space-between",
+                div(
+                  span("g(x)=",style ="padding-right: 10px;"),
+                  div(
+                    style="display:inline-block; flex-grow: 1;",
+                    textInput(
+                      inputId = "function_input",
+                      label = "",
+                      width = "100%")
+                  ),
+                  
+                  actionButton(
+                    inputId = "function_apply",
+                    label = "=")
+                  ,
+                  br(),
+                  "Variance",
+                  verbatimTextOutput('var_output', placeholder = TRUE),
+                  "Mean",
+                  verbatimTextOutput('mean_output', placeholder = TRUE))
+                      
+                    ))
+            ),
+           tabPanel("Show a specific R.V.",
+              span("R.V.=   ",style ="padding-right: 10px;"),
+              div(style="display:inline-block; flex-grow: 1;",
+                  textInput(
+                    inputId = "function_input1",
+                    label = "",
+                    width = "100%"))
+              ,{
+                plotOutput(
+                  outputId = "rv_hist"
+                )
+              }
+              ))
        )
      )
     ),
