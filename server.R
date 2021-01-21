@@ -26,26 +26,45 @@ loadData <- function() {
   data
 }
 
+# matches "u<=X" or "X<=u"
+isSingleInequality <- function(str) {
+  str_detect(str, "^X[<>]?=-?[0-9]+.?[0-9]*$|^X[<>]-?[0-9]+.?[0-9]*$")
+}
+
+# "u<=X<=v"
+isDoubleInequality <- function(str) {
+  str_detect(str, "^-?[0-9]+.?[0-9]*<=?X<=?-?[0-9]+.?[0-9]*$")
+}
+
 parseProbabilityInput <- function(rawInput) {
-  if(str_detect(rawInput, "^X[<>]?=-?[0-9]+$|^X[<>]-?[0-9]+$")) {
+  # matches "u<=X" or "X<=u"
+  if(isSingleInequality(rawInput)) {
     hash(
       "is_conditional" = FALSE,
       "is_interval" = FALSE,
       "operator" = str_extract(rawInput, "[<>]?=|[<>]"),
-      "value" = as.numeric(str_extract(rawInput, "-?[0-9]+"))
+      "value" = as.numeric(str_extract(rawInput, "-?[0-9]+.?[0-9]*"))
     )
   }
-  # mathing "u<=X<=v"
-  else if(str_detect(rawInput, "^-?[0-9]+<=?X<=?-?[0-9]+$")){
+  # matching "u<=X<=v"
+  else if(isDoubleInequality(rawInput)){
     hash(
       "is_conditional" = FALSE,
       "is_interval" = TRUE,
       "operators" = str_extract_all(rawInput, "<=?"),
-      "values" = as.numeric(unlist(str_extract_all(rawInput, "-?[0-9]+")))
+      "values" = as.numeric(unlist(str_extract_all(rawInput, "-?[0-9]+.?[0-9]*")))
     )
   }
+  else if(str_detect(rawInput,"\\|")) {
+    if(all(sapply(str_split(rawInput, "\\|"), function(s) isSimpleProbability(s)))) {
+      print("OK")
+    }
+    else {
+      print("FAIL")
+    }
+  }
   else {
-    print("conditional probability - TODO")
+    print("FAIL")
   }
 }
 
