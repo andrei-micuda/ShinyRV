@@ -49,24 +49,112 @@ parseProbabilityInput <- function(rawInput) {
   }
 }
 
+probabilityWrapper <- function(x, distribution_data, input) {
+  print(distribution_data$name)
+  if(distribution_data$name == "Normal") {
+    print('intra')
+    mean <- isolate(input$var_mean)
+    std_dev <- isolate(input$var_std_dev)
+    
+    pnorm(x, mean, std_dev)
+  }
+  else if(distribution_data$name == 'Log-normal') {
+    mean <- isolate(input$var_mean)
+    std_dev <- isolate(input$var_std_dev)
+    plnorm(x, mean, std_dev)
+  }
+  else if(distribution_data$name == 'Uniform') {
+    a <- isolate(input$var_a)
+    b <- isolate(input$var_b)
+    punif(x, input$var_a, input$var_b)
+  }
+  else if(distribution_data$name == 'Geometric') {
+    p <- isolate(input$var_p)
+    pgeom(x, p)
+  }
+  else if(distribution_data$name == 'Gamma') {
+    k <- isolate(input$var_k)
+    th <- isolate(input$var_theta)
+    pgamma(x, shape=k, scale=th)
+  }
+  else if(distribution_data$name == 'Beta') {
+    alpha <- isolate(input$var_alpha)
+    beta <- isolate(input$var_beta)
+    pbeta(x, shape1=alpha, shape2=beta)
+  }
+  else if(distribution_data$name == 'Cauchy') {
+    x0 <- isolate(input$var_x0)
+    gamma <- isolate(input$var_gamma)
+    pcauchy(x, location=x0, scale=gamma)
+  }
+  else if(distribution_data$name == 'Chi-square') {
+    n <- floor(isolate(input$var_n))
+    pchisq(x, df=n)
+  }
+  else if(distribution_data$name == 'Bernoulli'){
+    if (isolate(input$var_x) ==0) {
+      p <- 1-(isolate(input$var_p))
+    }
+    else {
+      p <- isolate(input$var_p)
+    }
+    
+    pbern(x, prob = p)
+  }
+  else if(distribution_data$name == 'Binomial'){
+    p<- isolate(input$var_p)
+    n<- isolate(input$var_n)
+    
+    pbinom(x, size=n, prob=p)
+  }
+  else if(distribution_data$name == 'Poisson') {
+    lambda <- isolate(input$var_lambda)
+    
+    ppois(x, lambda)
+  }
+  else if(distribution_data$name == 'Exponential') {
+    lambda <- isolate(input$var_lambda)
+    
+    pexp(x, lambda)
+  }
+  else if(distribution_data$name == 'Hyper-Geometric'){
+    n <- isolate(input$var_n)
+    m <- isolate(input$var_m)
+    k <- isolate(input$var_k)
+    
+    phyper(x, m, n, k)
+  }
+  else if(distribution_data$name == 'Negative-Binomial'){
+    n <- isolate(input$var_n)
+    mu <- isolate(input$var_mu)
+    
+    pnbinom(x, size=n, mu=mu)
+  }
+  else if(distribution_data$name == 'Students-T'){
+    df <- isolate(input$var_df)
+    p <- isolate(input$var_p)
+    
+    pt(points, df)
+  }
+}
+
 calculateProbability <- function(data, input) {
-  print(data)
-  probability_func <- data$distribution_data$probability_func
   if(!data$probability_data$is_conditional)
   {
     if(!data$probability_data$is_interval){
       # input ~ "X<=u"
       if(data$probability_data$operator %in% c("<", "<=")) {
-        probability_func(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
+        probabilityWrapper(data$probability_data$value, data$distribution_data, input)
+        #probability_func(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
       }
       # input ~ "X>=u"
       else{
-        1 - probability_func(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
+        1 - probabilityWrapper(data$probability_data$value, data$distribution_data, input)
       }
     }
     # input ~ "u<=X<=v"
     else{
-      probability_func(data$probability_data$values[2], isolate(input$var_mean), isolate(input$var_std_dev)) - probability_func(data$probability_data$values[1], isolate(input$var_mean), isolate(input$var_std_dev))
+      probabilityWrapper(data$probability_data$values[2], data$distribution_data, input) - probabilityWrapper(data$probability_data$values[1], data$distribution_data, input)
     }
   }
 }
@@ -452,7 +540,6 @@ function(input, output) {
         p <- input$var_p
         if(p != 0) {
           points <- seq(input$var_a, input$var_b)
-          print(points)
           
           var <- (1 - p)/ p ** 2
           mean <- 1 / p
@@ -578,7 +665,6 @@ function(input, output) {
         }
           
         points <- seq(0,1)
-        print(points)
         
         var <- p*(1-p)
         mean <- p
@@ -610,7 +696,6 @@ function(input, output) {
         p<- (input$var_p)
         n<- (input$var_n)
         points<- seq(0,n)
-        print(points)
         
         var <- n * p* (1-p)
         mean <- n* p
@@ -672,7 +757,6 @@ function(input, output) {
         k<- (input$var_k)
         x<- (input$var_x)
         points <- seq(0,x)
-        print (points)
         
         var <- k*p*(1-p)*(m+n-k)/(m+n-1)
         mean = k*p
@@ -694,7 +778,6 @@ function(input, output) {
         n<-(input$var_n)
         mu<-(input$var_mu)
         points <- seq(0,n)
-        print(points)
         
         var <- (mu+mu^2)/n
         mean <- mu
@@ -1024,9 +1107,6 @@ function(input, output) {
   
   output$probability_calc_output <- renderText({
     data <- probability_calculator_data()
-    print(data$distribution_data$name)
-    print(data$probability_data)
-  
     calculateProbability(data, input)
   })
 }
