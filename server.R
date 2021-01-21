@@ -471,6 +471,46 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
 }
 
 function(input, output) {
+  
+  newRv <- function(failed = FALSE) {
+    modalDialog(
+      title = "Create a new distribution",
+      
+      # UI :D
+      textInput("values", label="Values"),
+      textInput("probabilities", label="Probabilities"),
+      
+      if(failed)
+        div(tags$b('Invalid arrays', style="color:red;")),
+      
+      footer = tagList (
+        modalButton("Cancel"),
+        actionButton("ok", "OK")
+      )
+    )
+  }
+  
+  observeEvent(input$newdist, {
+    showModal(newRv())
+  }) 
+  
+  observeEvent(input$ok, {
+    if(!is.null(input$values) && !is.null(input$probabilities)) {
+      #verificare
+      v <- eval(parse(text=input$values))
+      p <- eval(parse(text=input$probabilities))
+      
+      if(typeof(v) != "double" || typeof(p) != "double") { # if input is bad we show a message
+        showModal(newRv(failed = TRUE))
+      }
+      else { # if input is good
+        print(v)
+        print(p)
+        removeModal()
+      }
+      
+    }
+  })
   distribution_plot_data <- eventReactive(c(input$update_plot, input$n_points), {
     distribution_name = paste(input$distribution) # Concatenate vectors after converting to character.
     
