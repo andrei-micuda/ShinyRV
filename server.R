@@ -1094,6 +1094,8 @@ function(input, output) {
     
     table
   })
+  #exercitiul 5
+  output$rv_hist <- renderPlot({})
   
   probability_calculator_data <- eventReactive(input$calculate_probability, {
     distribution_data <- distribution_plot_data()
@@ -1104,6 +1106,26 @@ function(input, output) {
       "probability_data" = parseProbabilityInput(input$probability_calc_input)
     )
   })
+  
+  #exercitiul 8
+  apply_function <- eventReactive(input$function_apply, {
+    
+    distribution_data <- distribution_plot_data()
+    raw_input <- input$function_input
+    
+    primary_func <- function(x){eval(parse(text=raw_input))}
+    
+    values<- c(-1000:1000)
+    probs<- pnorm(values)
+    # facut o matrice din acesetea doua si apoi aplicat getmean si getvariance din discreterv a lui george
+    
+  })
+  
+  output$var_output <- renderText({
+    data <- apply_function()
+    var(data)
+  })
+
   
   output$probability_calc_output <- renderText({
     data <- probability_calculator_data()
