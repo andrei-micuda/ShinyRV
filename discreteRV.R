@@ -2,8 +2,8 @@ validate_probability <- function(v, p) {
   values <- array(v)
   probs <- array(p)
   
-  if(!is.array(values) && !is.array(probs))
-    stop("values are not arrays.")
+  #if(!is.array(values) && !is.array(probs))
+  #  stop("values are not arrays.")
   
   if(length(values) != length(probs))
     stop("values do not have the same length")
