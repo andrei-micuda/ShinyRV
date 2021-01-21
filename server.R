@@ -36,31 +36,24 @@ isDoubleInequality <- function(str) {
   str_detect(str, "^-?[0-9]+.?[0-9]*<=?X<=?-?[0-9]+.?[0-9]*$")
 }
 
-# matches "u<=X" or "X<=u" or "u<=X<=v"
-isSimpleProbability <- function(str) {
-  isSingleInequality(str) | isDoubleInequality(str)
-}
-
 parseProbabilityInput <- function(rawInput) {
-  if(isSimpleProbability(rawInput)) {
-    # matches "u<=X" or "X<=u"
-    if(str_detect(rawInput, "^X[<>]?=-?[0-9]+.?[0-9]*$|^X[<>]-?[0-9]+.?[0-9]*$")) {
-      hash(
-        "is_conditional" = FALSE,
-        "is_interval" = FALSE,
-        "operator" = str_extract(rawInput, "[<>]?=|[<>]"),
-        "value" = as.numeric(str_extract(rawInput, "-?[0-9]+.?[0-9]*"))
-      )
-    }
-    # matching "u<=X<=v"
-    else if(str_detect(rawInput, "^-?[0-9]+.?[0-9]*<=?X<=?-?[0-9]+.?[0-9]*$")){
-      hash(
-        "is_conditional" = FALSE,
-        "is_interval" = TRUE,
-        "operators" = str_extract_all(rawInput, "<=?"),
-        "values" = as.numeric(unlist(str_extract_all(rawInput, "-?[0-9]+.?[0-9]*")))
-      )
-    }
+  # matches "u<=X" or "X<=u"
+  if(isSingleInequality(rawInput)) {
+    hash(
+      "is_conditional" = FALSE,
+      "is_interval" = FALSE,
+      "operator" = str_extract(rawInput, "[<>]?=|[<>]"),
+      "value" = as.numeric(str_extract(rawInput, "-?[0-9]+.?[0-9]*"))
+    )
+  }
+  # matching "u<=X<=v"
+  else if(isDoubleInequality(rawInput)){
+    hash(
+      "is_conditional" = FALSE,
+      "is_interval" = TRUE,
+      "operators" = str_extract_all(rawInput, "<=?"),
+      "values" = as.numeric(unlist(str_extract_all(rawInput, "-?[0-9]+.?[0-9]*")))
+    )
   }
   else if(str_detect(rawInput,"\\|")) {
     if(all(sapply(str_split(rawInput, "\\|"), function(s) isSimpleProbability(s)))) {
