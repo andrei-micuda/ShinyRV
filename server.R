@@ -3,6 +3,7 @@ library(hash)
 library(xtable)
 library(Rlab)
 library(stringr)
+source("discreteRV.R")
 
 outputDir <- "distribution_data"
 
@@ -1135,16 +1136,29 @@ function(input, output) {
     primary_func <- function(x){eval(parse(text=raw_input))}
     
     values<- c(-1000:1000)
-    probs<- pnorm(values)
+    probs<- dnorm(values)
+    #if(distribution_data$distribution_name =="Normal")
+   
+    sample<- random_variable <- matrix(data=c(values,probs), nrow=2, byrow=TRUE)
+    result<-applyFunction(sample,primary_func)
+
+    
     # facut o matrice din acesetea doua si apoi aplicat getmean si getvariance din discreterv a lui george
     
   })
   
   output$var_output <- renderText({
     data <- apply_function()
-    var(data)
+    
+    round(getVariance(data),digits = 5)
+    
   })
-
+  output$mean_output <- renderText({
+    data <- apply_function()
+    
+    round(getMean(data),digits = 5)
+    
+  })
   
   output$probability_calc_output <- renderText({
     data <- probability_calculator_data()

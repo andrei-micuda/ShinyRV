@@ -1,6 +1,7 @@
 validate_probability <- function(v, p) {
   values <- array(v)
   probs <- array(p)
+  print(sum(probs))
   
   #if(!is.array(values) && !is.array(probs))
   #  stop("values are not arrays.")
@@ -8,7 +9,7 @@ validate_probability <- function(v, p) {
   if(length(values) != length(probs))
     stop("values do not have the same length")
   
-  if(sum(probs) != 1)
+  if(1  - sum(probs) > 0.00000000001)
     stop("probabilites must add up to 1")
   
   if(length(unique(values)) != length(values)) 
