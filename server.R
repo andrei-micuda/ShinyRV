@@ -49,6 +49,28 @@ parseProbabilityInput <- function(rawInput) {
   }
 }
 
+calculateProbability <- function(data, input) {
+  print(data)
+  probability_func <- data$distribution_data$probability_func
+  if(!data$probability_data$is_conditional)
+  {
+    if(!data$probability_data$is_interval){
+      # input ~ "X<=u"
+      if(data$probability_data$operator %in% c("<", "<=")) {
+        probability_func(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
+      }
+      # input ~ "X>=u"
+      else{
+        1 - probability_func(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
+      }
+    }
+    # input ~ "u<=X<=v"
+    else{
+      probability_func(data$probability_data$values[2], isolate(input$var_mean), isolate(input$var_std_dev)) - probability_func(data$probability_data$values[1], isolate(input$var_mean), isolate(input$var_std_dev))
+    }
+  }
+}
+
 {
   data_distributions <- hash(
     "Bernoulli" = {hash(
@@ -361,7 +383,8 @@ function(input, output) {
           "Median" = 0,
           "Variance" = 1,
           "Standard deviation" = 1
-        ))
+        ),
+        "probability_func" = pnorm)
     }
     else {
       if(distribution_name == 'Normal') {
@@ -380,7 +403,8 @@ function(input, output) {
             "Median" = mean,
             "Variance" = std_dev,
             "Standard deviation" = sqrt(std_dev)
-          ))
+          ),
+          "probability_func" = pnorm)
       }
       else if(distribution_name == 'Log-normal') {
         points <- seq(input$var_a, input$var_b, length.out = input$n_points)
@@ -398,7 +422,8 @@ function(input, output) {
             "Median" = exp(mean),
             "Variance" = floor(exp(std_dev^2) - 1) * exp(2 * mean + std_dev^2),
             "Standard deviation" = sqrt(floor(exp(std_dev^2) - 1) * exp(2 * mean + std_dev^2))
-          ))
+          ),
+          "probability_func" = plnorm)
       }
       else if(distribution_name == 'Uniform') {
         a <- input$var_a
@@ -420,7 +445,8 @@ function(input, output) {
             "Median" = (a+b) / 2,
             "Variance" = (b - a)^2 / 12,
             "Standard deviation" = sqrt((b - a)^2 / 12)
-          ))
+          ),
+          "probability_func" = punif)
       }
       else if(distribution_name == 'Geometric') {
         p <- input$var_p
@@ -442,7 +468,8 @@ function(input, output) {
               "Mean" = mean,
               "Median" = median,
               "Variance" = var,
-              "Standard deviation" = sqrt(var))
+              "Standard deviation" = sqrt(var)),
+            "probability_func" = pgeom
             )
         }
         else {
@@ -469,7 +496,8 @@ function(input, output) {
           "statistics" = hash(
             "Mean" = mean,
             "Variance" = var,
-            "Standard deviation" = sqrt(var))
+            "Standard deviation" = sqrt(var)),
+          "probability_func" = pgamma
         )
       }
       else if(distribution_name == 'Beta') {
@@ -492,7 +520,8 @@ function(input, output) {
             "Mean" = mean,
             "Median" = median,
             "Variance" = var,
-            "Standard deviation" = sqrt(var))
+            "Standard deviation" = sqrt(var)),
+          "probability_func" = pbeta
         )
       }
       else if(distribution_name == 'Cauchy') {
@@ -511,7 +540,8 @@ function(input, output) {
           "dens_mass_plot_values" = dcauchy(points, location=x0, scale=gamma),
           "distribution_plot_values" = pcauchy(points, location=x0, scale=gamma),
           "points" = points,
-          "statistics" = hash("Median" = median)
+          "statistics" = hash("Median" = median),
+          "probability_func" = pcauchy
         )
       }
       else if(distribution_name == 'Chi-square') {
@@ -535,7 +565,8 @@ function(input, output) {
             "Mean" = mean,
             "Median" = median,
             "Variance" = var,
-            "Standard deviation" = sqrt(var))
+            "Standard deviation" = sqrt(var)),
+          "probability_func" = pchisq
         )
       }
       else if(distribution_name == 'Bernoulli'){
@@ -571,7 +602,8 @@ function(input, output) {
             "Median" = median,
             "Variance" = var,
             "Standard deviation" = sqrt(var)
-          ))
+          ),
+          "probability_func" = pbern)
           
       }
       else if(distribution_name == 'Binomial'){
@@ -594,7 +626,8 @@ function(input, output) {
             "Median" = median,
             "Variance" = var,
             "Standard deviation" = sqrt(var)
-          ))
+          ),
+          "probability_func" = pbinom)
       }
       else if(distribution_name == 'Poisson') {
         points <- seq(input$var_a, input$var_b, by=1)
@@ -611,7 +644,8 @@ function(input, output) {
             "Median" = floor(lambda + 1/3 - 0.02 / lambda),
             "Variance" = lambda,
             "Standard deviation" = sqrt(lambda)
-          ))
+          ),
+          "probability_func" = ppois)
       }
       else if(distribution_name == 'Exponential') {
         points <- seq(input$var_a, input$var_b, length.out = input$n_points)
@@ -628,7 +662,8 @@ function(input, output) {
             "Median" = log(2) / lambda,
             "Variance" = 1 / lambda^2,
             "Standard deviation" = sqrt(1 / lambda^2)
-          ))
+          ),
+          "probability_func" = pexp)
       }
       else if(distribution_name == 'Hyper-Geometric'){
         p<- (input$var_p)
@@ -652,7 +687,8 @@ function(input, output) {
             "Median" = "-",
             "Variance" = var,
             "Standard deviation" = sqrt(var)
-          ))
+          ),
+          "probability_func" = phyper)
       }
       else if(distribution_name == 'Negative-Binomial'){
         n<-(input$var_n)
@@ -674,7 +710,8 @@ function(input, output) {
             "Median" = median,
             "Variance" = var,
             "Standard deviation" = sqrt(var)
-          ))
+          ),
+          "probability_func" = pnbinom)
       }
       else if(distribution_name == 'Students-T'){
         points <- seq(input$var_a, input$var_b, length.out = input$n_points)
@@ -710,7 +747,8 @@ function(input, output) {
             "Median" = median,
             "Variance" = variance,
             "Standard deviation" = 'undefined'
-          ))
+          ),
+          "probability_func" = pt)
       }
     } 
   })
@@ -979,33 +1017,16 @@ function(input, output) {
     raw_probability_input <- input$probability_calc_input
     
     hash(
-      "distribution_name" = distribution_data$name,
+      "distribution_data" = distribution_data,
       "probability_data" = parseProbabilityInput(input$probability_calc_input)
     )
   })
   
   output$probability_calc_output <- renderText({
     data <- probability_calculator_data()
-    print(data$distribution_name)
+    print(data$distribution_data$name)
     print(data$probability_data)
-    if(data$distribution_name == "Normal") {
-      if(!data$probability_data$is_conditional)
-      {
-        if(!data$probability_data$is_interval){
-          # input ~ "X<=u"
-          if(data$probability_data$operator %in% c("<", "<=")) {
-            pnorm(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
-          }
-          # input ~ "X>=u"
-          else{
-            1 - pnorm(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
-          }
-        }
-        # input ~ "u<=X<=v"
-        else{
-          pnorm(data$probability_data$values[2], isolate(input$var_mean), isolate(input$var_std_dev)) - pnorm(data$probability_data$values[1], isolate(input$var_mean), isolate(input$var_std_dev))
-        }
-      }
-    }
+  
+    calculateProbability(data, input)
   })
 }
