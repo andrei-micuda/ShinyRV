@@ -32,47 +32,67 @@ isSingleInequality <- function(str) {
   str_detect(str, "^X[<>]?=-?[0-9]+.?[0-9]*$|^X[<>]-?[0-9]+.?[0-9]*$")
 }
 
-# "u<=X<=v"
+# matches "u<=X<=v"
 isDoubleInequality <- function(str) {
   str_detect(str, "^-?[0-9]+.?[0-9]*<=?X<=?-?[0-9]+.?[0-9]*$")
 }
 
-parseProbabilityInput <- function(rawInput) {
+parseNonConditionalProbability <- function(str) {
   # matches "u<=X" or "X<=u"
-  if(isSingleInequality(rawInput)) {
+  if(isSingleInequality(str)) {
     hash(
+      "has_error" = FALSE,
       "is_conditional" = FALSE,
       "is_interval" = FALSE,
-      "operator" = str_extract(rawInput, "[<>]?=|[<>]"),
-      "value" = as.numeric(str_extract(rawInput, "-?[0-9]+.?[0-9]*"))
+      "operator" = str_extract(str, "[<>]?=|[<>]"),
+      "value" = as.numeric(str_extract(str, "-?[0-9]+.?[0-9]*"))
     )
   }
   # matching "u<=X<=v"
-  else if(isDoubleInequality(rawInput)){
+  else if(isDoubleInequality(str)) {
     hash(
+      "has_error" = FALSE,
       "is_conditional" = FALSE,
       "is_interval" = TRUE,
-      "operators" = str_extract_all(rawInput, "<=?"),
-      "values" = as.numeric(unlist(str_extract_all(rawInput, "-?[0-9]+.?[0-9]*")))
+      "operators" = str_extract_all(str, "<=?"),
+      "values" = as.numeric(unlist(str_extract_all(str, "-?[0-9]+.?[0-9]*")))
     )
   }
-  else if(str_detect(rawInput,"\\|")) {
-    if(all(sapply(str_split(rawInput, "\\|"), function(s) isSimpleProbability(s)))) {
-      print("OK")
-    }
-    else {
-      print("FAIL")
-    }
+  else {
+    hash("has_error" = TRUE)
+  }
+}
+
+parseProbabilityInput <- function(rawInput) {
+  # if string doesn't contain "|" we check if it's a simple probability
+  if(!str_detect(rawInput,"\\|")) {
+    parseNonConditionalProbability(rawInput)
   }
   else {
-    print("FAIL")
+    probs <- unlist(str_split(rawInput, "\\|"))
+    left_prob <- parseNonConditionalProbability(probs[1])
+    right_prob <- parseNonConditionalProbability(probs[2])
+    
+    # if we successfully parsed both parts of the conditional probability
+    if(left_prob$has_error == FALSE & right_prob$has_error == FALSE) {
+      hash(
+        "has_error" = FALSE,
+        "is_conditional" = TRUE,
+        "left_prob" = left_prob,
+        "right_prob" = right_prob
+      )
+    }
+    else {
+      hash("has_error" = TRUE)
+    }
   }
 }
 
 probabilityWrapper <- function(x, distribution_data, input) {
-  print(distribution_data$name)
+  
+  distribution_data$name <- unlist(distribution_data$name)
+
   if(distribution_data$name == "Normal") {
-    print('intra')
     mean <- isolate(input$var_mean)
     std_dev <- isolate(input$var_std_dev)
     
@@ -158,24 +178,89 @@ probabilityWrapper <- function(x, distribution_data, input) {
   }
 }
 
+calculateNonConditionalProbability <- function(data, input) {
+  if(data$probability_data$is_interval == FALSE){
+    # input ~ "X<=u"
+    if(data$probability_data$operator %in% c("<", "<=")) {
+      probabilityWrapper(data$probability_data$value, data$distribution_data, input)
+    }
+    # input ~ "X>=u"
+    else{
+      1 - probabilityWrapper(data$probability_data$value, data$distribution_data, input)
+    }
+  }
+  # input ~ "u<=X<=v"
+  else{
+    probabilityWrapper(data$probability_data$values[2], data$distribution_data, input) - probabilityWrapper(data$probability_data$values[1], data$distribution_data, input)
+  }
+}
+
+intersectProbabilities <- function(lprob, rprob) {
+  if(!lprob$is_conditional & !rprob$is_conditional) {
+    if(lprob$operator %in% c("<", "<=") & rprob$operator %in% c("<", "<=")) {
+      hash(
+        "has_error" = FALSE,
+        "is_conditional" = FALSE,
+        "is_interval" = FALSE,
+        "operator" = ifelse(lprob$value<rprob$value, lprob$operator, rprob$operator),
+        "value" = ifelse(lprob$value<rprob$value, lprob$value, rprob$value)
+      )
+    }
+    else if(lprob$operator %in% c(">", ">=") & rprob$operator %in% c(">", ">=")) {
+      hash(
+        "has_error" = FALSE,
+        "is_conditional" = FALSE,
+        "is_interval" = FALSE,
+        "operator" = ifelse(lprob$value<rprob$value, rprob$operator, lprob$operator),
+        "value" = ifelse(lprob$value<rprob$value, rprob$value, lprob$value)
+      )
+    }
+    else if(lprob$operator %in% c("<", "<=") & rprob$operator %in% c(">", ">=")) {
+      hash(
+        "has_error" = FALSE,
+        "is_conditional" = FALSE,
+        "is_interval" = TRUE,
+        "operators" = c(rprob$operator, lprob$operator),
+        "values" = c(rprob$value, lprob$value)
+      )
+    }
+    else {
+      hash(
+        "has_error" = FALSE,
+        "is_conditional" = FALSE,
+        "is_interval" = TRUE,
+        "operators" = c(lprob$operator, rprob$operator),
+        "values" = c(lprob$value, rprob$value)
+      )
+    }
+  }
+  else {
+    hash( "has_error" = TRUE )
+  }
+}
+
 calculateProbability <- function(data, input) {
   if(!data$probability_data$is_conditional)
   {
-    if(!data$probability_data$is_interval){
-      # input ~ "X<=u"
-      if(data$probability_data$operator %in% c("<", "<=")) {
-        probabilityWrapper(data$probability_data$value, data$distribution_data, input)
-        #probability_func(data$probability_data$value, isolate(input$var_mean), isolate(input$var_std_dev))
-      }
-      # input ~ "X>=u"
-      else{
-        1 - probabilityWrapper(data$probability_data$value, data$distribution_data, input)
-      }
-    }
-    # input ~ "u<=X<=v"
-    else{
-      probabilityWrapper(data$probability_data$values[2], data$distribution_data, input) - probabilityWrapper(data$probability_data$values[1], data$distribution_data, input)
-    }
+    calculateNonConditionalProbability(data, input)
+  }
+  else
+  {
+    intersectionProbability <- intersectProbabilities(data$probability_data$left_prob, data$probability_data$right_prob)
+    
+    intersection_data = hash(
+      "distribution_data" = hash("name" = data$distribution_data$name),
+      "probability_data" = intersectionProbability
+    )
+    
+    r_data = hash(
+      "distribution_data" = hash("name" = data$distribution_data$name),
+      "probability_data" = data$probability_data$right_prob
+    )
+    
+    #x1 <- calculateNonConditionalProbability(intersection_data, input)
+    #x2 <- calculateNonConditionalProbability(r_data, input)
+    calculateNonConditionalProbability(intersection_data, input) / calculateNonConditionalProbability(r_data, input)
   }
 }
 
@@ -1162,7 +1247,7 @@ function(input, output) {
     raw_probability_input <- input$probability_calc_input
     
     hash(
-      "distribution_data" = distribution_data,
+      "distribution_data" = hash("name" = distribution_data$name),
       "probability_data" = parseProbabilityInput(input$probability_calc_input)
     )
   })
