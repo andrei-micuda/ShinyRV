@@ -1256,13 +1256,20 @@ function(input, output) {
   apply_function <- eventReactive(input$function_apply, {
     
     distribution_data <- distribution_plot_data()
+    print(distribution_data$statistics$Mean)
     raw_input <- input$function_input
     
     primary_func <- function(x){eval(parse(text=raw_input))}
-    
-    values<- c(-1000:1000)
-    probs<- dnorm(values)
-    #if(distribution_data$distribution_name =="Normal")
+    if(distribution_data$name =="Normal"){
+      values<- c(-1000:1000)
+      probs<- dnorm(values)
+    }else if (distribution_data$name == "Chi-square"){
+      values<- c(0:1000)
+      probs<- dchisq(values,distribution_data$statistics$Mean)
+    }else if (distribution_data$name == "Exponential"){
+      values<-c(0:1000)
+      probs <- dexp(values,distribution_data$statistics$Mean^(-1))
+    }
    
     sample<- random_variable <- matrix(data=c(values,probs), nrow=2, byrow=TRUE)
     result<-applyFunction(sample,primary_func)
@@ -1275,13 +1282,13 @@ function(input, output) {
   output$var_output <- renderText({
     data <- apply_function()
     
-    round(getVariance(data),digits = 5)
+    round(getVariance(data),digits = 0)
     
   })
   output$mean_output <- renderText({
     data <- apply_function()
     
-    round(getMean(data),digits = 5)
+    round(getMean(data),digits = 0)
     
   })
   
