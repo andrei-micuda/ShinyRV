@@ -106,6 +106,21 @@ fluidPage(
        )
      )
     ),
-    tabPanel("Test")
+    tabPanel("Discrete RV Operations",
+        titlePanel("Random variable manipulation"),
+        div(style="display:inline-block; flex-grow: 1;",
+              textInput("var_x", label = "Values X"),
+              textInput("prob_x", label = "Probabilities X")),
+        br(),
+        div(style="display:inline-block; flex-grow: 1;",
+              textInput("var_y", label = "Values Y"),
+              textInput("prob_y", label = "Probabilities Y")),
+        br(),
+        actionButton(
+          inputId = "rv_update",
+          label = "Update"),
+        br(),
+        tableOutput(outputId = "rv_operations")
+    )
   )
 )

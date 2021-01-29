@@ -3,6 +3,7 @@ library(hash)
 library(xtable)
 library(Rlab)
 library(stringr)
+library(discreteRV)
 
 outputDir <- "distribution_data"
 userDist <- list()
@@ -556,7 +557,40 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
 }
 
 function(input, output) {
+  generateTable <- function(x, y) {
+    table <- data.frame(matrix(ncol = 3, nrow = 0))
+    col_names <- c("Operation", "Value", "Probabilities")
+    colnames(table) <- col_names
+    
+    sum <- x + y
+    dif <- x - y
+    prod <- x * y
+    ratio <- x / y
+    
+    table[1,] <- list("Sumation",toString(outcomes(sum)), toString(round(probs(sum), 3)))
+    table[2,] <- list("Difference",toString(outcomes(dif)), toString(round(probs(dif), 3)))
+    table[3,] <- list("Product",toString(outcomes(prod)), toString(round(probs(prod), 3)))
+    table[4,] <- list("Ratio",toString(outcomes(ratio)), toString(round(probs(ratio), 3)))
+    
+    table
+  }
   
+  observeEvent(input$rv_update, {
+    
+    
+    var_x <- try(eval(parse(text=input$var_x)), TRUE)
+    prob_x <- try(eval(parse(text=input$prob_x)), TRUE)
+    
+    var_y <- try(eval(parse(text=input$var_y)), TRUE)
+    prob_y <- try(eval(parse(text=input$prob_y)), TRUE)
+    
+    rv_x <- try(RV(outcomes=var_x, probs=prob_x))
+    rv_y <- try(RV(outcomes=var_y, probs=prob_y))
+    
+    
+    table <- generateTable(rv_x, rv_y)
+    output$rv_operations <- renderTable(table)
+  })
   newRv <- function(failed = FALSE) {
     modalDialog(
       title = "Create a new distribution",
@@ -572,6 +606,12 @@ function(input, output) {
         modalButton("Cancel"),
         actionButton("ok", "OK")
       )
+    )
+  }
+  ShowGraphs <- function(rv) {
+    modalDialog(
+      title = "Distributii adaugate de utilizator",
+      renderPlot(plot(x = rv[1,], y = rv[2,]))
     )
   }
   
@@ -608,11 +648,10 @@ function(input, output) {
   })
   
   observeEvent(input$showdist,{
-    print(length(userDist))
     for(i in userDist) {
-      plot(i[1,], i[2,])
+      showModal(ShowGraphs(i))
     }
-  }) 
+  })
   
   distribution_plot_data <- eventReactive(c(input$update_plot, input$n_points), {
     distribution_name = paste(input$distribution) # Concatenate vectors after converting to character.
