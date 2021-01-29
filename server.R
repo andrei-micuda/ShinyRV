@@ -557,6 +557,72 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
 }
 
 function(input, output) {
+  # problema 2
+  newRv <- function(failed = FALSE) {
+    modalDialog(
+      title = "Create a new distribution",
+      
+      # UI :D
+      textInput("values", label="Values"),
+      textInput("probabilities", label="Probabilities"),
+      
+      if(failed)
+        div(tags$b('Invalid arrays', style="color:red;")),
+      
+      footer = tagList (
+        modalButton("Cancel"),
+        actionButton("ok", "OK")
+      )
+    )
+  }
+  observeEvent(input$newdist, {
+    showModal(newRv())
+  })
+  
+  observeEvent(input$ok, {
+    if(!is.null(input$values) && !is.null(input$probabilities)) {
+      #verificare
+      v <- try(eval(parse(text=input$values)), TRUE)
+      p <- try(eval(parse(text=input$probabilities)), TRUE)
+      
+      if((typeof(v) != "double" && typeof(v) != "integer") || typeof(p) != "double" && typeof(p) != "integer") { # if input is bad we show a message
+        showModal(newRv(failed = TRUE))
+      }
+      else { # if input is good
+        print(v)
+        print(p)
+        
+        tryCatch({
+          matr <- validate_probability(v, p)
+        },
+        error= function(cond) {
+          print(cond)
+          showModal(newRv(failed = TRUE))
+        })
+        
+        userDist[[length(userDist) + 1]] <<- matr
+        removeModal()
+      }
+      
+    }
+  })
+  
+  #show the distributions created by the user
+  ShowGraphs <- function(rv) {
+    modalDialog(
+      title = "Distributii adaugate de utilizator",
+      renderPlot(plot(x = rv[1,], y = rv[2,]))
+    )
+  }
+  
+  observeEvent(input$showdist,{
+    for(i in userDist) {
+      showModal(ShowGraphs(i))
+    }
+  })
+  
+  
+  # problema 12
   generateTable <- function(x, y) {
     table <- data.frame(matrix(ncol = 3, nrow = 0))
     col_names <- c("Operation", "Value", "Probabilities")
@@ -591,70 +657,8 @@ function(input, output) {
     table <- generateTable(rv_x, rv_y)
     output$rv_operations <- renderTable(table)
   })
-  newRv <- function(failed = FALSE) {
-    modalDialog(
-      title = "Create a new distribution",
-      
-      # UI :D
-      textInput("values", label="Values"),
-      textInput("probabilities", label="Probabilities"),
-      
-      if(failed)
-        div(tags$b('Invalid arrays', style="color:red;")),
-      
-      footer = tagList (
-        modalButton("Cancel"),
-        actionButton("ok", "OK")
-      )
-    )
-  }
-  ShowGraphs <- function(rv) {
-    modalDialog(
-      title = "Distributii adaugate de utilizator",
-      renderPlot(plot(x = rv[1,], y = rv[2,]))
-    )
-  }
   
-  observeEvent(input$newdist, {
-    showModal(newRv())
-  }) 
-  
-  observeEvent(input$ok, {
-    if(!is.null(input$values) && !is.null(input$probabilities)) {
-      #verificare
-      v <- try(eval(parse(text=input$values)), TRUE)
-      p <- try(eval(parse(text=input$probabilities)), TRUE)
-      
-      if((typeof(v) != "double" && typeof(v) != "integer") || typeof(p) != "double" && typeof(p) != "integer") { # if input is bad we show a message
-        showModal(newRv(failed = TRUE))
-      }
-      else { # if input is good
-        print(v)
-        print(p)
-        
-        tryCatch({
-          matr <- validate_probability(v, p)
-        },
-        error= function(cond) {
-          print(cond)
-          showModal(newRv(failed = TRUE))
-        })
-        
-        userDist[[length(userDist) + 1]] <<- matr
-        removeModal()
-      }
-      
-    }
-  })
-  
-  observeEvent(input$showdist,{
-    for(i in userDist) {
-      showModal(ShowGraphs(i))
-    }
-  })
-  
-  observeEvent(input$relation,{})
-  
+  # problema 1 (Afisarea distributiilor)
   distribution_plot_data <- eventReactive(c(input$update_plot, input$n_points), {
     distribution_name = paste(input$distribution) # Concatenate vectors after converting to character.
     
@@ -1079,6 +1083,8 @@ function(input, output) {
     # Create the checkboxes and select them all by default
   })
   
+  
+  # problema 3
   output$events_calculator <- renderUI({
     if(is.null(input$relation))
       return()
@@ -1102,6 +1108,32 @@ function(input, output) {
 value=0.5,min=0,max=1,step=0.05))
     }
     
+  })
+  
+  observeEvent(input$calculate_prob,{
+    
+    pa <- input$Pa
+    pb <- input$Pb
+    if(input$relation == "Incompatible"){
+      output$Intersectie <-renderText(0) 
+      output$Reuniune <-renderText(pa+pb)
+      output$Restrictie <-renderText("-") 
+    }else if(input$relation == "Independent"){
+      output$Intersectie <-renderText(pa*pb) 
+      output$Reuniune <-renderText(pa+pb- pa*pb)
+      output$Restrictie <-renderText(pb) 
+    }else if(input$relation == "Not known"){
+      reun <- input$PaUPb
+      restr<- input$PacPb
+      output$Intersectie <-renderText(pa+pb-reun) 
+      output$Reuniune <-renderText(reun)
+      output$Restrictie <-renderText((restr*pb)/pa) 
+    }
+  })
+  
+  output$probability_calc_output <- renderText({
+    data <- probability_calculator_data()
+    calculateProbability(data, input)
   })
   
   output$desc <- renderText({distribution_plot_data()$desc})
@@ -1379,34 +1411,5 @@ value=0.5,min=0,max=1,step=0.05))
     
     round(getMean(data),digits = 0)
     
-  })
-  
-  
- observeEvent(input$calculate_prob,{
-    
-    pa <- input$Pa
-    pb <- input$Pb
-    if(input$relation == "Incompatible"){
-      output$Intersectie <-renderText(0) 
-      output$Reuniune <-renderText(pa+pb)
-      output$Restrictie <-renderText("-") 
-    }else if(input$relation == "Independent"){
-      output$Intersectie <-renderText(pa*pb) 
-      output$Reuniune <-renderText(pa+pb- pa*pb)
-      output$Restrictie <-renderText((pa*pb)/pa) 
-    }else if(input$relation == "Not known"){
-      reun <- input$PaUPb
-      restr<- input$PacPb
-      output$Intersectie <-renderText(pa+pb-reun) 
-      output$Reuniune <-renderText(reun)
-      output$Restrictie <-renderText((restr*pb)/pa) 
-    }
-  })
-  
-  
-  
-  output$probability_calc_output <- renderText({
-    data <- probability_calculator_data()
-    calculateProbability(data, input)
   })
 }
