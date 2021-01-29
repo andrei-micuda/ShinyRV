@@ -1098,7 +1098,7 @@ function(input, output) {
       list(numericInput(inputId ="Pa", label = "P(a)",value = 0.5, min=0,max=1,step =0.05 ),
            numericInput(inputId ="Pb", label = "P(b)",value = 0.5, min=0,max=1,step =0.05 ),
            numericInput(inputId ="PaUPb", label = "P(a U b)", value =0.5,min = 0 , max =1,step = 0.05),
-           numericInput(inputId ="Pa|Pb",label ="P(a|b)",
+           numericInput(inputId ="PacPb",label ="P(a|b)",
 value=0.5,min=0,max=1,step=0.05))
     }
     
@@ -1380,6 +1380,30 @@ value=0.5,min=0,max=1,step=0.05))
     round(getMean(data),digits = 0)
     
   })
+  
+  
+ observeEvent(input$calculate_prob,{
+    
+    pa <- input$Pa
+    pb <- input$Pb
+    if(input$relation == "Incompatible"){
+      output$Intersectie <-renderText(0) 
+      output$Reuniune <-renderText(pa+pb)
+      output$Restrictie <-renderText("-") 
+    }else if(input$relation == "Independent"){
+      output$Intersectie <-renderText(pa*pb) 
+      output$Reuniune <-renderText(pa+pb- pa*pb)
+      output$Restrictie <-renderText((pa*pb)/pa) 
+    }else if(input$relation == "Not known"){
+      reun <- input$PaUPb
+      restr<- input$PacPb
+      output$Intersectie <-renderText(pa+pb-reun) 
+      output$Reuniune <-renderText(reun)
+      output$Restrictie <-renderText((restr*pb)/pa) 
+    }
+  })
+  
+  
   
   output$probability_calc_output <- renderText({
     data <- probability_calculator_data()
