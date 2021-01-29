@@ -1373,6 +1373,47 @@ value=0.5,min=0,max=1,step=0.05))
     )
   })
   
+  rv_transform_data <- eventReactive(input$rv_transform_update, {
+    x <- unlist(lapply(str_split(input$var_x_transform, " "), function(x) as.numeric(x)))
+    p <- unlist(lapply(str_split(input$prob_x_transform, " "), function(x) as.numeric(x)))
+    hash(
+      "x" = x,
+      "p" = p
+    )
+  })
+  
+  output$rv_transform_output <- renderText({
+    data <- rv_transform_data()
+    if(length(data$x) != length(data$p)) {
+      "Input must have the same length"
+    }
+    else {
+      func <- function(x) { eval(parse(text=isolate(input$g_x_transform))) }
+      raw_new_x <- unlist(lapply(data$x, func))
+      print(raw_new_x)
+      new_x <- c()
+      new_p <- c()
+      for(i in seq(from = 1, to = length(raw_new_x), by = 1)) {
+        val_curr <- raw_new_x[i]
+        if(val_curr %in% new_x) {
+          pos <- match(val_curr, new_x)
+          new_p[pos] <- new_p[pos] + data$p[i]
+        }
+        else {
+          new_x <- append(new_x, val_curr)
+          new_p <- append(new_p, data$p[i])
+        }
+      }
+      print(new_x)
+      print(new_p)
+      new_data <- data.frame(new_x, new_p)
+      new_data <- new_data[order(new_data$new_x),]
+      output_text <- paste(str_c(new_data[, 1], collapse=" "))
+      output_text <- paste(output_text, "\n", str_c(new_data[, 2], collapse=" "))
+      output_text
+    }
+  })
+  
   #exercitiul 8
   apply_function <- eventReactive(input$function_apply, {
     
