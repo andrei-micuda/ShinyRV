@@ -653,6 +653,8 @@ function(input, output) {
     }
   })
   
+  observeEvent(input$relation,{})
+  
   distribution_plot_data <- eventReactive(c(input$update_plot, input$n_points), {
     distribution_name = paste(input$distribution) # Concatenate vectors after converting to character.
     
@@ -1043,6 +1045,11 @@ function(input, output) {
     selectInput(inputId = "distribution", "Distribution", keys(data_distributions), selected = "Normal")
   })
   
+  #drop- down selection box for the kind of relation of the events
+  
+  output$choose_relation <- renderUI({
+    selectInput(inputId = "relation", "Relation", c("Independent","Incompatible","Not known"), selected = "Independent")
+  })
   # Inputs for the variables of the selected distribution
   output$choose_values <- renderUI({
     # If missing input, return to avoid error later in function
@@ -1070,6 +1077,31 @@ function(input, output) {
     })
     
     # Create the checkboxes and select them all by default
+  })
+  
+  output$events_calculator <- renderUI({
+    if(is.null(input$relation))
+      return()
+    
+    if(input$relation == "Independent"){
+      
+      list(numericInput(inputId ="Pa", label = "P(a)",value = 0.5, min=0,max=1,step =0.05 ),
+           numericInput(inputId ="Pb", label = "P(b)",value = 0.5, min=0,max=1,step =0.05 ))
+     
+      
+    }else if( input$relation == "Incompatible") {
+      
+      list(numericInput(inputId ="Pa", label = "P(a)",value = 0.5, min=0,max=1,step =0.05 ),
+           numericInput(inputId ="Pb", label = "P(b)",value = 0.5, min=0,max=1,step =0.05 ))
+      
+    }else if(input$relation == "Not known") {
+      list(numericInput(inputId ="Pa", label = "P(a)",value = 0.5, min=0,max=1,step =0.05 ),
+           numericInput(inputId ="Pb", label = "P(b)",value = 0.5, min=0,max=1,step =0.05 ),
+           numericInput(inputId ="PaUPb", label = "P(a U b)", value =0.5,min = 0 , max =1,step = 0.05),
+           numericInput(inputId ="Pa|Pb",label ="P(a|b)",
+value=0.5,min=0,max=1,step=0.05))
+    }
+    
   })
   
   output$desc <- renderText({distribution_plot_data()$desc})

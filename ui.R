@@ -121,6 +121,19 @@ fluidPage(
           label = "Update"),
         br(),
         tableOutput(outputId = "rv_operations")
-    )
+    ),
+    tabPanel("Working with Events",
+      titlePanel ("Please select the relationship between the events"),
+      uiOutput("choose_relation"),
+      uiOutput("events_calculator"),
+      
+      br(),"P(a",HTML("&cap;"),"b)",
+      verbatimTextOutput('Intersectie', placeholder = TRUE),
+      br(),"P(a U b)",
+      verbatimTextOutput('Reuniune', placeholder = TRUE),
+      br(),"P(b|a)",
+      verbatimTextOutput('Restrictie', placeholder = TRUE)
+      
+      )
   )
 )
