@@ -9,7 +9,7 @@ validate_probability <- function(v, p) {
   if(length(values) != length(probs))
     stop("values do not have the same length")
   
-  if(1  - sum(probs) > 0.00000000001)
+  if(abs(1  - sum(probs)) > 0.000001)
     stop("probabilites must add up to 1")
   
   if(length(unique(values)) != length(values)) 

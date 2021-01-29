@@ -15,9 +15,14 @@ fluidPage(
          actionButton(
            inputId = "update_plot",
            label = "Update"),
+         br(),
          actionButton(
            inputId = "newdist",
-           label = "New Distribution")
+           label = "New Distribution"),
+         br(),
+         actionButton(
+           inputId = "showdist",
+           label = "Show user created distributions")
        ),
        
        mainPanel(

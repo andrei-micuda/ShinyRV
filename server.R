@@ -3,9 +3,9 @@ library(hash)
 library(xtable)
 library(Rlab)
 library(stringr)
-source("discreteRV.R")
 
 outputDir <- "distribution_data"
+userDist <- list()
 
 saveData <- function(data) {
   # Create a unique file name
@@ -582,20 +582,38 @@ function(input, output) {
   observeEvent(input$ok, {
     if(!is.null(input$values) && !is.null(input$probabilities)) {
       #verificare
-      v <- eval(parse(text=input$values))
-      p <- eval(parse(text=input$probabilities))
+      v <- try(eval(parse(text=input$values)), TRUE)
+      p <- try(eval(parse(text=input$probabilities)), TRUE)
       
-      if(typeof(v) != "double" || typeof(p) != "double") { # if input is bad we show a message
+      if((typeof(v) != "double" && typeof(v) != "integer") || typeof(p) != "double" && typeof(p) != "integer") { # if input is bad we show a message
         showModal(newRv(failed = TRUE))
       }
       else { # if input is good
         print(v)
         print(p)
+        
+        tryCatch({
+          matr <- validate_probability(v, p)
+        },
+        error= function(cond) {
+          print(cond)
+          showModal(newRv(failed = TRUE))
+        })
+        
+        userDist[[length(userDist) + 1]] <<- matr
         removeModal()
       }
       
     }
   })
+  
+  observeEvent(input$showdist,{
+    print(length(userDist))
+    for(i in userDist) {
+      plot(i[1,], i[2,])
+    }
+  }) 
+  
   distribution_plot_data <- eventReactive(c(input$update_plot, input$n_points), {
     distribution_name = paste(input$distribution) # Concatenate vectors after converting to character.
     
