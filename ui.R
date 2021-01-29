@@ -126,7 +126,11 @@ fluidPage(
       titlePanel ("Please select the relationship between the events"),
       uiOutput("choose_relation"),
       uiOutput("events_calculator"),
-      
+      br(),
+      actionButton(
+        inputId = "calculate_prob",
+        label = "Calculate"),
+      br(),
       br(),"P(a",HTML("&cap;"),"b)",
       verbatimTextOutput('Intersectie', placeholder = TRUE),
       br(),"P(a U b)",
