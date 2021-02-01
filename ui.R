@@ -137,7 +137,20 @@ fluidPage(
       verbatimTextOutput('Reuniune', placeholder = TRUE),
       br(),"P(b|a)",
       verbatimTextOutput('Restrictie', placeholder = TRUE)
-      
-      )
+      ),
+    tabPanel("Discrete RV - g(X)",
+             titlePanel("Discrete random variable transformation"),
+             div(style="display:inline-block; flex-grow: 1;",
+                 textInput("var_x_transform", label = "Values X"),
+                 textInput("prob_x_transform", label = "Probabilities X"),
+                 textInput("g_x_transform", label = "g(x)")),
+             br(),
+             actionButton(
+               inputId = "rv_transform_update",
+               label = "Update"),
+             br(),
+             br(),
+             verbatimTextOutput('rv_transform_output', placeholder = TRUE)
+    )
   )
 )
