@@ -90,16 +90,21 @@ fluidPage(
                       
                     ))
             ),
-           tabPanel("Show a specific R.V.",
-              span("R.V.=   ",style ="padding-right: 10px;"),
+           tabPanel("Show this Discrete R.V.",
+              span("Start value=  ",style ="padding-right: 10px;"),
               div(style="display:inline-block; flex-grow: 1;",
                   textInput(
-                    inputId = "function_input1",
+                    inputId = "svalinp",
                     label = "",
                     width = "100%"))
-              ,{
+              ,
+              actionButton(
+                inputId = "svalapply",
+                label = "=")
+              ,
+              {
                 plotOutput(
-                  outputId = "rv_hist"
+                  outputId = "drv_hist"
                 )
               }
               ))

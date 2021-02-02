@@ -1087,6 +1087,7 @@ function(input, output) {
     # Create the checkboxes and select them all by default
   })
   
+  # receiving the type of relation the user wants ( exercitiul 3)
   output$choose_relation <- renderUI({
     selectInput(inputId = "relation", "Relation", c("Independent","Incompatible","Not known"), selected = "Independent")
   })
@@ -1373,7 +1374,24 @@ value=0.5,min=0,max=1,step=0.05))
   })
   
   #exercitiul 5
-  output$rv_hist <- renderPlot({})
+  output$drv_hist <- renderPlot({
+    data<- distribution_plot_data()
+    startv <- show_drv()
+    plot_color <- '#428bca'
+    print(tail(data$points,n=1))
+    if (startv == 0){
+      a <- data$points
+      b <-data$dens_mass_plot_values
+    }else
+    {
+      a <- startv:tail(data$points,n=1)
+      b <- data$dens_mass_plot_values[-(1: (length(data$dens_mass_plot_values) -length(a)))]
+    }
+    plot(
+      a,b
+      
+    )
+  })
   
   # exercitiul 6
   probability_calculator_data <- eventReactive(input$calculate_probability, {
@@ -1433,6 +1451,7 @@ value=0.5,min=0,max=1,step=0.05))
   })
   
   #exercitiul 8
+  # dupa apasarea butonului prelucam input-ul pentru functie si il transformam intr-o functie care poate fi folosita pe celelalte date de intrare
   apply_function <- eventReactive(input$function_apply, {
     
     distribution_data <- distribution_plot_data()
@@ -1440,6 +1459,7 @@ value=0.5,min=0,max=1,step=0.05))
     raw_input <- input$function_input
     
     primary_func <- function(x){eval(parse(text=raw_input))}
+    #pentru fiecare distributie continua o discretitez intervalul si aplic functia primita
     if(distribution_data$name =="Normal"){
       values<- c(-1000:1000)
       probs<- dnorm(values)
@@ -1454,9 +1474,6 @@ value=0.5,min=0,max=1,step=0.05))
     sample<- random_variable <- matrix(data=c(values,probs), nrow=2, byrow=TRUE)
     result<-applyFunction(sample,primary_func)
 
-    
-    # facut o matrice din acesetea doua si apoi aplicat getmean si getvariance din discreterv a lui george
-    
   })
   
   output$var_output <- renderText({
@@ -1470,5 +1487,10 @@ value=0.5,min=0,max=1,step=0.05))
     
     round(getMean(data),digits = 0)
     
+  })
+  
+  #exercitiul 5
+  show_drv <- eventReactive(input$svalapply,{
+    starvalue <- input$svalinp
   })
 }
