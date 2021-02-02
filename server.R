@@ -1051,9 +1051,6 @@ function(input, output) {
   
   #drop- down selection box for the kind of relation of the events
   
-  output$choose_relation <- renderUI({
-    selectInput(inputId = "relation", "Relation", c("Independent","Incompatible","Not known"), selected = "Independent")
-  })
   # Inputs for the variables of the selected distribution
   output$choose_values <- renderUI({
     # If missing input, return to avoid error later in function
@@ -1083,6 +1080,9 @@ function(input, output) {
     # Create the checkboxes and select them all by default
   })
   
+  output$choose_relation <- renderUI({
+    selectInput(inputId = "relation", "Relation", c("Independent","Incompatible","Not known"), selected = "Independent")
+  })
   
   # problema 3
   output$events_calculator <- renderUI({
@@ -1129,11 +1129,6 @@ value=0.5,min=0,max=1,step=0.05))
       output$Reuniune <-renderText(reun)
       output$Restrictie <-renderText((restr*pb)/pa) 
     }
-  })
-  
-  output$probability_calc_output <- renderText({
-    data <- probability_calculator_data()
-    calculateProbability(data, input)
   })
   
   output$desc <- renderText({distribution_plot_data()$desc})
@@ -1360,9 +1355,11 @@ value=0.5,min=0,max=1,step=0.05))
     
     table
   })
+  
   #exercitiul 5
   output$rv_hist <- renderPlot({})
   
+  # exercitiul 6
   probability_calculator_data <- eventReactive(input$calculate_probability, {
     distribution_data <- distribution_plot_data()
     raw_probability_input <- input$probability_calc_input
@@ -1373,12 +1370,20 @@ value=0.5,min=0,max=1,step=0.05))
     )
   })
   
+  output$probability_calc_output <- renderText({
+    data <- probability_calculator_data()
+    calculateProbability(data, input)
+  })
+  
+  # exercitiul 7
   rv_transform_data <- eventReactive(input$rv_transform_update, {
     x <- unlist(lapply(str_split(input$var_x_transform, " "), function(x) as.numeric(x)))
     p <- unlist(lapply(str_split(input$prob_x_transform, " "), function(x) as.numeric(x)))
+    
     hash(
       "x" = x,
-      "p" = p
+      "p" = p,
+      "g" = input$g_x_transform
     )
   })
   
@@ -1388,9 +1393,8 @@ value=0.5,min=0,max=1,step=0.05))
       "Input must have the same length"
     }
     else {
-      func <- function(x) { eval(parse(text=isolate(input$g_x_transform))) }
+      func <- function(x) { eval(parse(text=data$g)) }
       raw_new_x <- unlist(lapply(data$x, func))
-      print(raw_new_x)
       new_x <- c()
       new_p <- c()
       for(i in seq(from = 1, to = length(raw_new_x), by = 1)) {
@@ -1404,8 +1408,6 @@ value=0.5,min=0,max=1,step=0.05))
           new_p <- append(new_p, data$p[i])
         }
       }
-      print(new_x)
-      print(new_p)
       new_data <- data.frame(new_x, new_p)
       new_data <- new_data[order(new_data$new_x),]
       output_text <- paste(str_c(new_data[, 1], collapse=" "))
