@@ -5,6 +5,8 @@ library(Rlab)
 library(stringr)
 library(discreteRV)
 
+source("discreteRV.R")
+
 outputDir <- "distribution_data"
 userDist <- list()
 
@@ -581,33 +583,38 @@ function(input, output) {
   
   observeEvent(input$ok, {
     if(!is.null(input$values) && !is.null(input$probabilities)) {
-      #verificare
+      
+      # parseaza inputul din modal
       v <- try(eval(parse(text=input$values)), TRUE)
       p <- try(eval(parse(text=input$probabilities)), TRUE)
       
-      if((typeof(v) != "double" && typeof(v) != "integer") || typeof(p) != "double" && typeof(p) != "integer") { # if input is bad we show a message
+      # verfica sa fie bun inputul
+      if((typeof(v) != "double" && typeof(v) != "integer") || typeof(p) != "double" && typeof(p) != "integer") {
+        # in cazul in care nu este bun afiseaza pe ecran acest lucru
         showModal(newRv(failed = TRUE))
       }
-      else { # if input is good
-        print(v)
-        print(p)
-        
+      else { 
+        #incearca sa creeze variabila aleatoare
         tryCatch({
           matr <- validate_probability(v, p)
         },
         error= function(cond) {
+          # in cazul in care validate_probability arunca o eroare este afisat pe ecran
           print(cond)
           showModal(newRv(failed = TRUE))
         })
         
+        # adauga V.A. in lista de V.A. definite de utilizator
         userDist[[length(userDist) + 1]] <<- matr
+        #inchide pop-up-ul
         removeModal()
       }
       
     }
   })
   
-  #show the distributions created by the user
+  # afiseaza o V.A. dupa formatul definit de functia vaidate_probability
+  # din discreteRV.R
   ShowGraphs <- function(rv) {
     modalDialog(
       title = "Distributii adaugate de utilizator",
@@ -624,15 +631,18 @@ function(input, output) {
   
   # problema 12
   generateTable <- function(x, y) {
+    # tabel folosit pentru frontend-ul aplicatiei
     table <- data.frame(matrix(ncol = 3, nrow = 0))
     col_names <- c("Operation", "Value", "Probabilities")
     colnames(table) <- col_names
     
+    # calculam diferite operatii intre cele 2 V.A.
     sum <- x + y
     dif <- x - y
     prod <- x * y
     ratio <- x / y
     
+    # adaugam in tabel V,A. noi obtinute
     table[1,] <- list("Sumation",toString(outcomes(sum)), toString(round(probs(sum), 3)))
     table[2,] <- list("Difference",toString(outcomes(dif)), toString(round(probs(dif), 3)))
     table[3,] <- list("Product",toString(outcomes(prod)), toString(round(probs(prod), 3)))
@@ -642,18 +652,18 @@ function(input, output) {
   }
   
   observeEvent(input$rv_update, {
-    
-    
+    # obtine V.A. din input-ul utilizatorului
     var_x <- try(eval(parse(text=input$var_x)), TRUE)
     prob_x <- try(eval(parse(text=input$prob_x)), TRUE)
     
     var_y <- try(eval(parse(text=input$var_y)), TRUE)
     prob_y <- try(eval(parse(text=input$prob_y)), TRUE)
     
+    # transforma input-ul in V.A.
     rv_x <- try(RV(outcomes=var_x, probs=prob_x))
     rv_y <- try(RV(outcomes=var_y, probs=prob_y))
     
-    
+    # apeleaza functia pentru a genera tabelul de operatii intre  x si y
     table <- generateTable(rv_x, rv_y)
     output$rv_operations <- renderTable(table)
   })
@@ -766,9 +776,6 @@ function(input, output) {
               "Standard deviation" = sqrt(var)),
             "probability_func" = pgeom
             )
-        }
-        else {
-          # idk yet
         }
       }
       else if(distribution_name == 'Gamma') {
@@ -1089,6 +1096,7 @@ function(input, output) {
     if(is.null(input$relation))
       return()
     
+    #pentru fiecare optiune din lista Idependente, Incompatibile, Not Known, generam inputuri si outputuri pentru calcularea diferitelor probabilitati
     if(input$relation == "Independent"){
       
       list(numericInput(inputId ="Pa", label = "P(a)",value = 0.5, min=0,max=1,step =0.05 ),
@@ -1110,24 +1118,32 @@ value=0.5,min=0,max=1,step=0.05))
     
   })
   
+  # calculam diferitele probabilitati folosind diverse formule din curs
   observeEvent(input$calculate_prob,{
     
     pa <- input$Pa
     pb <- input$Pb
     if(input$relation == "Incompatible"){
+      
       output$Intersectie <-renderText(0) 
       output$Reuniune <-renderText(pa+pb)
       output$Restrictie <-renderText("-") 
+    
     }else if(input$relation == "Independent"){
+      
       output$Intersectie <-renderText(pa*pb) 
       output$Reuniune <-renderText(pa+pb- pa*pb)
       output$Restrictie <-renderText(pb) 
+      
     }else if(input$relation == "Not known"){
+      
       reun <- input$PaUPb
       restr<- input$PacPb
+      
       output$Intersectie <-renderText(pa+pb-reun) 
       output$Reuniune <-renderText(reun)
       output$Restrictie <-renderText((restr*pb)/pa) 
+      
     }
   })
   
