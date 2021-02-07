@@ -29,7 +29,7 @@ De asemenea, am utilizat diverse surse de inspirație care includ, dar nu se lim
 
 
 ### Cerința 1.
-Aplicația conține 15 distribuții predefinite care sunt tinute intr-un obiect de tip `hash` de forma:
+Aplicația conține 15 distribuții predefinite care sunt ținute într-un obiect de tip `hash` de forma:
 
 ```r=
 data_distributions <- hash(
@@ -60,7 +60,7 @@ data_distributions <- hash(
 )
 ```
 
-Astfel, pentru fiecare distribuție avem definite o descriere sub formă de HTML, precum si un `data.frame` cu variabilele care o parametrizează. `name` reprezintă valoarea care va fi dată `label`-ului pentru input-ul respectiv, `input_id` -- id-ul prin care va fi identificat inputul variabilei, iar celelalte valori reprezintă valoarea implicită și limitele între care se va încadra fiecare variabilă.
+Astfel, pentru fiecare distribuție avem definite o descriere sub formă de HTML, precum si un `data.frame` cu variabilele care o parametrizează. `name` reprezintă valoarea care va fi dată `label`-ului pentru input-ul respectiv, `input_id` -- id-ul prin care va fi identificat input-ul variabilei, iar celelalte valori reprezintă valoarea implicită și limitele între care se va încadra fiecare variabilă.
 
 Pe baza cheilor din `hash`-ul anterior, se generează un `selectInput` care permite selecția unei distribuții pe baza numelui.
 
@@ -262,7 +262,7 @@ output$statistics_table <- renderTable({
 ---
 
 ### Cerința 2.
-Apasand pe butonul "New Distribution"
+Apăsând pe butonul "New Distribution"
 
 ```r=
 observeEvent(input$newdist, {
@@ -270,15 +270,15 @@ showModal(newRv())
 })
 ``` 
 
-utilizatorului ii apare un modal unde trebuie introduși doi vectori <br/>
+utilizatorului îi apare un modal unde trebuie introduși doi vectori <br/>
     
 ```r=
 textInput("values", label="Values"),
 textInput("probabilities", label="Probabilities"),
 ```
 
-(outcomes si probabilities). <br/>
-La apăsarea butonului Ok cele doua campuri sunt verificate,
+(outcomes și probabilities). <br/>
+La apăsarea butonului Ok cele doua câmpuri sunt verificate,
 
 ```r=
   v <- try(eval(parse(text=input$values)), TRUE)
@@ -291,7 +291,7 @@ La apăsarea butonului Ok cele doua campuri sunt verificate,
   } 
 ```
     
-iar in cazul in care sunt valide sunt introduse in lista de V.A. 
+iar în cazul în care sunt valide sunt introduse în lista de V.A. 
   
 ```r=
 matr <- validate_probability(v, p)
@@ -299,7 +299,7 @@ matr <- validate_probability(v, p)
 userDist[[length(userDist) + 1]] <<- matr
 ```
 
-Ulterior lista este folosita pentru a afisa distributiile create de utilizator dănd click pe butonul "Show user created distribution".
+Ulterior lista este folosită pentru a afișa distribuțiile create de utilizator dând click pe butonul "Show user created distribution".
 
 ```r=
 ShowGraphs <- function(rv) {
@@ -319,7 +319,7 @@ for(i in userDist) {
 ---
 
 ### Cerința 3.
-Aceasta cerinta se gaseste in tab-ul "Working with events", ca input sunt introduse probabilitatile `P(a)` si `P(b)` (In cazul in care Not Known este selectat sunt si alte inputuri)
+Aceasta cerința se gasește in tab-ul "Working with events", ca input sunt introduse probabilitățile `P(a)` și `P(b)` (În cazul în care Not Known este selectat sunt și alte input-uri)
 
 ```r=
     output$events_calculator <- renderUI({
@@ -341,7 +341,7 @@ Aceasta cerinta se gaseste in tab-ul "Working with events", ca input sunt introd
 })
 ```
 
-Cand utilizatorul apasa pe calculate, folosind formulele de la curs (precum Poincare si formula probabilitatii conditionate etc.) sunt calculate celelalte probabilitati afisate mai jos.
+Când utilizatorul apasă pe calculate, folosind formulele de la curs (precum Poincare și formula probabilității condiționate etc.) sunt calculate celelalte probabilități afișate mai jos.
 
 ```r=
 pa <- input$Pa
@@ -371,7 +371,7 @@ if(input$relation == "Incompatible"){
 ```
 ---
 ### Cerința 5.
-Tab-ul "Show this Discrete R.V." al galeriei de distribuții este responsabil pentru afișarea unei variabile discrete a cărei repartiție e aleasă de utilizator din galerie cu posibilitatea da a alege valoare de inceput. Am ales aceasta abordare de rezolvare pentru a ne îndepărtă puțin de spiritul [cerinței 2](#Cerința-2.) deoarece cerința menționată cuprinde și afișarea unei variabile discrete.
+Tab-ul "Show this Discrete R.V." al galeriei de distribuții este responsabil pentru afișarea unei variabile discrete a cărei repartiție e aleasă de utilizator din galerie cu posibilitatea de a alege valoare de început. Am ales aceasta abordare de rezolvare pentru a ne îndepărtă puțin de spiritul [cerinței 2](#Cerința-2.) deoarece cerința menționată cuprinde și afișarea unei variabile discrete.
 
 Pentru a prelua input-ul (valoarea de început) am folosit `eventReactive` prin `show_drv` care așteaptă ca butonul "="(cu id-ul `svalapply`) să fie apăsat după ce a fost introdus un input. După apăsare valoarea introdusă este preluată și stocată în variabila `stârvalue`.
 
@@ -381,7 +381,7 @@ show_drv <- eventReactive(input$svalapply,{
   })
     
 ```
-`show_drv` va fi apelat ulterior de `startv` pentru a genera plot-ul care servește că reprezentarea grafică a variabilei discrete. În primul rând aflăm prin variabila `data` care este distribuția curentă din galerie. Dacă valoare este 0 (cel puțin în cazul geometrice) datele plot-ului nu se schimbă iar dacă valoarea este diferită de 0 vom modifica corespunzător axele x și y ale plot-ului.
+`show_drv` va fi apelat ulterior de `startv` pentru a genera plot-ul care servește drept reprezentare grafică a variabilei discrete. În primul rând aflăm prin variabila `data` care este distribuția curentă din galerie. Dacă valoare este 0 (cel puțin în cazul geometrice) datele plot-ului nu se schimbă iar dacă valoarea este diferită de 0 vom modifica corespunzător axele x și y ale plot-ului.
 
 ```r=
 output$drv_hist <- renderPlot({
@@ -633,7 +633,7 @@ Pentru `hash`-ul dar ca exemplu mai devreme, funcția întoarce valoarea `0.9999
 
 ---
 ### Cerința 7.
-Tab-ul "Discrete RV - g(X)" din meniul principal al aplicației permite introducerea valorilor a doi vectori -- pentru valorile și probabilitățile variabilei discrete -- separate prin spatiu și a unei funcții de transformare `g(x)` pentru calcularea noii variabile discrete g(X).
+Tab-ul "Discrete RV - g(X)" din meniul principal al aplicației permite introducerea valorilor a doi vectori -- pentru valorile și probabilitățile variabilei discrete -- separate prin spațiu și a unei funcții de transformare `g(x)` pentru calcularea noii variabile discrete g(X).
 
 În cadrul unei funcții `eventReactive` vom reține cei doi vectori -- de valori și de probabilități, parsând inputul si transformându-l în numere:
 
@@ -702,9 +702,9 @@ Astfel, pentru input-ul dat ca exemplu mai devreme, output-ul va fi:
 ---
 
 ### Cerința 8.
-Tab-ul "Applying Function" al galeriei de distribuții este cel responsabil pentru aplicarea funcțiilor unei variabile aleatoare continue a cărei repartiție e aleasă de utilizator din Galerie. 
+Tab-ul "Applying Function" al galeriei de distribuții este cel responsabil pentru aplicarea funcțiilor unei variabile aleatoare continue a cărei repartiție este aleasă de utilizator din Galerie. 
 
-Pornim de la un `textInput` care va fi funcția primită de la tastatură (text care va fi preluat de variabilă `raw_input`). Pentru verificarea de corectitudine a funcției preluate de la tastatură vom lua spre utilizare o funcție inline anonimă care va părșa input-ul și apoi îl va evalua.
+Pornim de la un `textInput` care va fi funcția primită de la tastatură (text care va fi preluat de variabilă `raw_input`). Pentru verificarea corectitudinii funcției preluate de la tastatură vom lua spre utilizare o funcție inline anonimă care va parsa input-ul și apoi îl va evalua.
 
 ```r=
   apply_function <- eventReactive(input$function_apply, {
@@ -714,7 +714,7 @@ Pornim de la un `textInput` care va fi funcția primită de la tastatură (text 
     raw_input <- input$function_input
     
     primary_func <- function(x){eval(parse(text=raw_input))}
-    #pentru fiecare distributie continua o discretitez intervalul si aplic functia primita
+    #pentru fiecare distributie continua discretitez intervalul si aplic functia primita
     if(distribution_data$name =="Normal"){
       values<- c(-1000:1000)
       probs<- dnorm(values)
@@ -740,7 +740,7 @@ applyFunction <- function(m, f) {
 }
 
 ```
-După aplicare funcției asupra distribuției ne vom folosi de `getVariance` și de `getMean` (disponibile în fișierul *discreteRV.r* ) pentru a ajunge la rezultatele dorite. 
+După aplicarea funcției asupra distribuției ne vom folosi de `getVariance` și de `getMean` (disponibile în fișierul *discreteRV.r* ) pentru a ajunge la rezultatele dorite. 
 
 ```r=
 getMean <- function(m) {
@@ -753,7 +753,7 @@ getVariance <- function(m) {
 
 ```
 
-In final prin `renderText` vom afișa rezultatele.
+În final prin `renderText` vom afișa rezultatele.
 
 ```r=
   
@@ -776,7 +776,7 @@ In final prin `renderText` vom afișa rezultatele.
 ---
 
 ### Cerința 12.
-Intr-o maniera similara cu cerinta 2, sunt introduse campurile outcomes si probabilities pentru variabilele X si Y.
+Într-o manieră similară cu cerința 2, sunt introduse câmpurile outcomes şi probabilities pentru variabilele X si Y.
 
 ```r=
 var_x <- try(eval(parse(text=input$var_x)), TRUE)
@@ -789,7 +789,7 @@ var_x <- try(eval(parse(text=input$var_x)), TRUE)
     rv_y <- try(RV(outcomes=var_y, probs=prob_y))
 ```
 
-La apasarea butonului "Update" sunt calculate suma, diferenta produsul si raportul dintre acestea doua,
+La apăsarea butonului "Update" sunt calculate suma, diferența produsul şi raportul dintre acestea doua,
 
 ```r=
     generateTable <- function(x, y) {
@@ -814,18 +814,18 @@ La apasarea butonului "Update" sunt calculate suma, diferenta produsul si raport
   }
 ```
     
-și afisate sub forma unui tabel
+și afișate sub forma unui tabel
     
 ```r=
     table <- generateTable(rv_x, rv_y)
     output$rv_operations <- renderTable(table)
 ```
 
-Limite: In cazul in care dam sumbit fara sa avem campurile valide, programul va da eroare
+Limite: În cazul în care dăm submit fără să avem câmpurile valide, programul va da eroare
 
 
 ## Dificultăți în realizarea cerințelor
-1. O problema întampinată de toți trei a fost cea de parsare a inputurilor complexe (exemple ar fi inputurile in care ceream vectori, functii care trebuiau aplicate pe distributii sau inputuri care implicau lucruri cu evenimente). In cazul inputurilor care trebuiau evaluate, precum erau vectorii functiile folosite au fost `exec` si `eval`, cu ajutorul cărora puteam executa cod R dintr-un string. Pentru validarea inputuri-lor complexe (calculul unor probabilități condiționate), am utilizat expresii regulate împreună cu funcțiile oferite de `stringr`.
-2. Acomodarea cu workflow-ul impus de Shiny, întrucât crearea unei aplicații web în R este destul de diferită și restrictivă comparativ cu alte framework-uri ca React sau Angular
+1. O problema întampinată de toți trei a fost cea de parsare a inputurilor complexe (exemple ar fi inputurile în care ceream vectori, funcții care trebuiau aplicate pe distribuții sau input-uri care implicau lucruri cu evenimente). În cazul input-urilor care trebuiau evaluate, precum erau vectorii funcțiile folosite au fost `exec` și `eval`, cu ajutorul cărora puteam executa cod R dintr-un string. Pentru validarea input-urilor complexe (calculul unor probabilități condiționate), am utilizat expresii regulate împreună cu funcțiile oferite de `stringr`.
+2. Acomodarea cu workflow-ul impus de Shiny, întrucât crearea unei aplicații web în R este destul de diferită și restrictivă comparativ cu alte framework-uri precum React sau Angular
 3. Găsirea unei soluții pentru rezolvarea cerinței 8 a fost destul de dificilă. După câteva ore de încercat variante de răspuns unul dintre noi a venit cu ideea de discretizare iar pentru aceasta a fost nevoie de implementarea unui fișier seapărat .R (*discreteRV.r*) pentru gestionarea aplicării de funcții.
 4. Rezolvarea diverselor bug-uri care țin de sintaxă. R nu oferă descrieri explicite pentru problemele de rulare iar atunci când, de exemplu, o virgulă era în plus toată aplicația crăpa.
