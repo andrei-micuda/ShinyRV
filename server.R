@@ -518,7 +518,7 @@ The <b>binomial distribution</b> is frequently used to model <span class="text-s
       ,
       "variables" = data.frame(
         "name" = c("p","n","m","k","x"),
-        "input_id" = c("p","n","m","k","x"),
+        "input_id" = c("p","n","m","k","x1"),
         "default_value" = c(0.5,5,5,5,5),
         "min" = c(0,0,0,0,0),
         "max" = c(1,30,30,60,30),
@@ -970,11 +970,14 @@ function(input, output) {
         n<- (input$var_n)
         m<- (input$var_m)
         k<- (input$var_k)
-        x<- (input$var_x)
+        x<- (input$var_x1)
         points <- seq(0,x)
         
+        print(points)
+                  
+        
         var <- k*p*(1-p)*(m+n-k)/(m+n-1)
-        mean = k*p
+        mean <- k*p
         hash(
           "name" = distribution_name,
           "desc" = data_distributions[[distribution_name]]$desc_HTML,
