@@ -1,7 +1,5 @@
 # ShinyRV - Proiect Probabilități și Statistică
 
-[toc]
-
 ## Introducere
 
 Proiectul de față urmărește crearea unei aplicații web (folosind pachetul Shiny) care permite lucrul cu variabile aleatoare discrete și continue. Acesta a fost realizat de Anghel Alin, Blănar George și Micudă Andrei.
@@ -14,7 +12,7 @@ Aplicația folosește multiple pachete oferite de R prin CRAN, utilitatea fiecă
 * [`hash`](https://cran.r-project.org/web/packages/hash/index.html) - permite definirea unor structuri similare cu obiectele de tip JSON, utilizat pentru stocarea mai usoara a datelor
 * [`Rlab`](https://cran.r-project.org/web/packages/Rlab/index.html) -
 * [`stringr`](https://cran.r-project.org/web/packages/stringr/index.html) - folosit pentru parsarea input-ului dat de utilizator, precum și realizarea diferitor operații pe string-uri
-* [`discreteRV`](https://cran.r-project.org/web/packages/discreteRV/index.html) - 
+* [`discreteRV`](https://cran.r-project.org/web/packages/discreteRV/index.html) - lucru cu variabile aleatoare discrete, folosit la cerinta 12
 
 De asemenea, am utilizat diverse surse de inspirație care includ, dar nu se limitează la:
 
@@ -27,6 +25,8 @@ De asemenea, am utilizat diverse surse de inspirație care includ, dar nu se lim
 
 ### Cerinte Abordate:
     1, 2, 3, 5, 6, 7, 8, 12
+
+
 
 ### Cerința 1.
 Aplicația conține 15 distribuții predefinite care sunt tinute intr-un obiect de tip `hash` de forma:
@@ -369,12 +369,54 @@ if(input$relation == "Incompatible"){
 
 }
 ```
+---
+### Cerința 5.
+Tab-ul "Show this Discrete R.V." al galeriei de distribuții este responsabil pentru afișarea unei variabile discrete a cărei repartiție e aleasă de utilizator din galerie cu posibilitatea da a alege valoare de inceput. Am ales aceasta abordare de rezolvare pentru a ne îndepărtă puțin de spiritul [cerinței 2](#Cerința-2.) deoarece cerința menționată cuprinde și afișarea unei variabile discrete.
+
+Pentru a prelua input-ul (valoarea de început) am folosit `eventReactive` prin `show_drv` care așteaptă ca butonul "="(cu id-ul `svalapply`) să fie apăsat după ce a fost introdus un input. După apăsare valoarea introdusă este preluată și stocată în variabila `stârvalue`.
+
+```r=
+show_drv <- eventReactive(input$svalapply,{
+    starvalue <- input$svalinp
+  })
+    
+```
+`show_drv` va fi apelat ulterior de `startv` pentru a genera plot-ul care servește că reprezentarea grafică a variabilei discrete. În primul rând aflăm prin variabila `data` care este distribuția curentă din galerie. Dacă valoare este 0 (cel puțin în cazul geometrice) datele plot-ului nu se schimbă iar dacă valoarea este diferită de 0 vom modifica corespunzător axele x și y ale plot-ului.
+
+```r=
+output$drv_hist <- renderPlot({
+    data<- distribution_plot_data()
+    startv <- show_drv()
+    plot_color <- '#428bca'
+    if (startv == 0){
+      a <- data$points
+      b <-data$dens_mass_plot_values
+    }else
+    {
+      a <- startv:tail(data$points,n=1)
+      b <- data$dens_mass_plot_values[-(1: (length(data$dens_mass_plot_values) -length(a)))]
+    }
+    plot(
+      a,b
+    )
+  })
+```
+In final plot-ul este afișat in UI prin `plotOutput`
+
+```r=
+{
+    plotOutput(
+      outputId = "drv_hist"
+    )
+}
+```
+**Observație** : Această funcționalitate a fost lăsată valabilă pentru toate distribuțiile însă este adecvată pentru cele discrete.
 
 ---
-### Cerința 6
+### Cerința 6.
 Tab-ul "Probability calculator" al galeriei de distribuții permite introducerea unui eveniment pe baza căruia se va calcula probabilitatea asociată acestuia în contexul distribuției selectate.
 
-La fel ca în cadrul [cerinței 1](#Cerința-1.), vom folosi funcția `eventReactive` pentru a atualiza valorile doar la apăsarea butonului "=". Astfel, vom trimite mai departe informațiile distribuției stocate în `distribution_plot_data` și vom parsa input-ul oferit de utilizator.
+La fel ca în cadrul [cerinței 1](#Cerința-1.), vom folosi funcția `eventReactive` pentru a actualiza valorile doar la apăsarea butonului "=". Astfel, vom trimite mai departe informațiile distribuției stocate în `distribution_plot_data` și vom parsa input-ul oferit de utilizator.
 
 ```r=
 probability_calculator_data <- eventReactive(input$calculate_probability, {
@@ -659,6 +701,80 @@ Astfel, pentru input-ul dat ca exemplu mai devreme, output-ul va fi:
 
 ---
 
+### Cerința 8.
+Tab-ul "Applying Function" al galeriei de distribuții este cel responsabil pentru aplicarea funcțiilor unei variabile aleatoare continue a cărei repartiție e aleasă de utilizator din Galerie. 
+
+Pornim de la un `textInput` care va fi funcția primită de la tastatură (text care va fi preluat de variabilă `raw_input`). Pentru verificarea de corectitudine a funcției preluate de la tastatură vom lua spre utilizare o funcție inline anonimă care va părșa input-ul și apoi îl va evalua.
+
+```r=
+  apply_function <- eventReactive(input$function_apply, {
+    
+    distribution_data <- distribution_plot_data()
+    
+    raw_input <- input$function_input
+    
+    primary_func <- function(x){eval(parse(text=raw_input))}
+    #pentru fiecare distributie continua o discretitez intervalul si aplic functia primita
+    if(distribution_data$name =="Normal"){
+      values<- c(-1000:1000)
+      probs<- dnorm(values)
+    }else if (distribution_data$name == "Chi-square"){
+      values<- c(0:1000)
+      probs<- dchisq(values,distribution_data$statistics$Mean)
+    }else if (distribution_data$name == "Exponential"){
+      values<-c(0:1000)
+      probs <- dexp(values,distribution_data$statistics$Mean^(-1))
+    }
+   
+    sample<- random_variable <- matrix(data=c(values,probs), nrow=2, byrow=TRUE)
+    result<-applyFunction(sample,primary_func)
+
+  
+```
+Implementarea este realizată doar pentru 3 repartiții continue, mai sus menționate. Pentru aplicarea unei funcții pe o distribuție a trebuit să discretizăm acea distribuție. Această discretizare este realizată prin atribuirea unui interval mare de valori. După transformarea distribuției într-o matrice vom folosi funcția `applyFunction` (disponibilă în fișierul *discreteRV.r* )
+
+```r=
+applyFunction <- function(m, f) {
+  m[1,] = f(m[1,])
+  m
+}
+
+```
+După aplicare funcției asupra distribuției ne vom folosi de `getVariance` și de `getMean` (disponibile în fișierul *discreteRV.r* ) pentru a ajunge la rezultatele dorite. 
+
+```r=
+getMean <- function(m) {
+  sum(m[2,] * m[1,])
+}
+
+getVariance <- function(m) {
+  getMean(applyFunction(m, function(x) x**2)) - getMean(m) ** 2
+}
+
+```
+
+In final prin `renderText` vom afișa rezultatele.
+
+```r=
+  
+  output$var_output <- renderText({
+    data <- apply_function()
+    
+    round(getVariance(data),digits = 0)
+    
+  })
+  output$mean_output <- renderText({
+    data <- apply_function()
+    
+    round(getMean(data),digits = 0)
+    
+  })
+  
+```
+
+
+---
+
 ### Cerința 12.
 Intr-o maniera similara cu cerinta 2, sunt introduse campurile outcomes si probabilities pentru variabilele X si Y.
 
@@ -711,3 +827,5 @@ Limite: In cazul in care dam sumbit fara sa avem campurile valide, programul va 
 ## Dificultăți în realizarea cerințelor
 1. O problema întampinată de toți trei a fost cea de parsare a inputurilor complexe (exemple ar fi inputurile in care ceream vectori, functii care trebuiau aplicate pe distributii sau inputuri care implicau lucruri cu evenimente). In cazul inputurilor care trebuiau evaluate, precum erau vectorii functiile folosite au fost `exec` si `eval`, cu ajutorul cărora puteam executa cod R dintr-un string. Pentru validarea inputuri-lor complexe (calculul unor probabilități condiționate), am utilizat expresii regulate împreună cu funcțiile oferite de `stringr`.
 2. Acomodarea cu workflow-ul impus de Shiny, întrucât crearea unei aplicații web în R este destul de diferită și restrictivă comparativ cu alte framework-uri ca React sau Angular
+3. Găsirea unei soluții pentru rezolvarea cerinței 8 a fost destul de dificilă. După câteva ore de încercat variante de răspuns unul dintre noi a venit cu ideea de discretizare iar pentru aceasta a fost nevoie de implementarea unui fișier seapărat .R (*discreteRV.r*) pentru gestionarea aplicării de funcții.
+4. Rezolvarea diverselor bug-uri care țin de sintaxă. R nu oferă descrieri explicite pentru problemele de rulare iar atunci când, de exemplu, o virgulă era în plus toată aplicația crăpa.
